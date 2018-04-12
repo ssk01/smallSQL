@@ -12,6 +12,8 @@ using std::vector;
 using std::map;
 class RecordList {
 public:
+	using Record = pair<int, int>;
+
 	RecordList(){}
 	RecordList(string tableName, int size) : tableName(tableName), nextPos{ 0,0 }, entrySize(size){
 	}
@@ -25,7 +27,7 @@ public:
 		}
 		return res;
 	}
-	void insertRecord(char *content) {
+	Record insertRecord(char *content) {
 		Record entry;
 		if (free_records.size()) {
 			cout << "fuck" << endl;
@@ -44,10 +46,10 @@ public:
 		records.push_back(entry);
 		auto block = BufferManager::instance().find_or_alloc(tableName, entry.first);
 		memcpy(block.rawPtr() + entry.second * entrySize, content, entrySize);
+		return entry;
 	}
 private:
 	// blockindex and numRecord in block
-	using Record = pair<int, int>;
 	
 	string tableName;
 	list<Record> records;
@@ -67,9 +69,9 @@ public:
 			tableInfos[name] = RecordList{ name, entrySize };
 		}
 	}
-	void insertRecord(const string &name, char *content) {
+	RecordList::Record insertRecord(const string &name, char *content) {
 		if (tableExisted(name)) {
-			tableInfos[name].insertRecord(content);
+			return tableInfos[name].insertRecord(content);
 		}
 	}
 	vector<char *>  showReocrd(const string &name) {

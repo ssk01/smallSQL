@@ -1,7 +1,7 @@
 #pragma once
 #include <stdexcept>
 #include <string>
-
+#include <assert.h>
 class InsuffcientSpace : public std::runtime_error
 {
 public:
