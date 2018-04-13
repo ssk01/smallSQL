@@ -19,18 +19,18 @@ public:
 		nameTables[name] = { name, attr };
 		RecordManager::instance().createTable(name, nameTables[name].size());
 	}
-	void addIndex(const string& name, const string& indexName, const string& attriName) {
+	void addIndex(const string& name, const string& indexName, const string& attrName) {
 		if (existed(name, indexName)) {
 			//return false;
 		}
-		auto type = attributeType(name, attriName);
-		nameTables[name].addIndex(indexName, attriName);
+		auto type = attributeType(name, attrName);
+		nameTables[name].addIndex(indexName, attrName);
 	}
-	string attributeType(const string& name, const string& attriName) {
-		return nameTables[name].attributeType(attriName);
+	string attributeType(const string& name, const string& attrName) {
+		return nameTables[name].attributeType(attrName);
 	}
 	void showTableRecord(const string& name, char *value) {
-		cout <<"ttt" << *(int*)value << endl;
+		//cout <<"ttt" << *(int*)value << endl;
 
 		return nameTables[name].showRecord(value);
 	}

@@ -14,14 +14,24 @@ using std::istringstream;
 using std::ostream;
 using std::cout;
 using std::endl;
+
 class Attribute {
 	friend class Table;
 	friend ostream& operator<<(ostream& out, Attribute a) {
-		out << a.name << "\t" << a.type << "\t" << a.size << "\t" << a.indexName << "\t";
+		out << "name: \t"<< a.name << "  type:\t" << a.type << "  size:\t" << a.size << " indexName:\t" 
+			<< a.indexName << " unique:\t" << a.unique;
 		return out;
-	}
+	};
 public:
-	Attribute(string name, string type, int size) :name(name), type(type), indexName(""), size(size){}
+	Attribute(string name, string type, int s = 0, bool u = false) :name(name), type(type), indexName(""), size(s), unique(u){
+		if (type == string("int")) {
+			size = 4;
+		}
+		else if (type == string("float")) {
+			size = 4;
+		} 
+		cout << type << (type == string("int")) << endl;
+	}
 	template<class T>
 	T val(const string& c, T tmp) {
 		T v;
@@ -37,6 +47,7 @@ private:
 	string name;
 	string type;
 	string indexName;
+	bool unique;
 	int size;
 };
 
@@ -53,17 +64,17 @@ public:
 		}
 		return false;
 	}
-	void addIndex(const string& indexName, const string& attriName) {
+	void addIndex(const string& indexName, const string& attrName) {
 		for (auto &a : attributes) {
-			if (a.name == attriName) {
+			if (a.name == attrName) {
 				a.setIndex(indexName);
 				return;
 			}
 		}
 	}
-	string attributeType(const string& attriName) {
+	string attributeType(const string& attrName) {
 		for (auto &a : attributes) {
-			if (a.name == attriName) {
+			if (a.name == attrName) {
 				return a.type;
 			}
 		}
@@ -74,15 +85,16 @@ public:
 			if (attri.type == "int") {
 				int i;
 				memcpy(&i, value + offset, attri.size);
-				cout << attri << i << endl;
+				cout << attri <<"\t value: "<< i << endl;
 			}
-			if (attri.type == "char") {
-				cout << attri << value + offset << endl;
+			else if (attri.type == "char"){
+				cout << attri << "\t value: " << string(value + offset) << endl;
 			}
-			/*if (attri.type == "float") {
-		 
-				cout << attri << i << endl;
-			}*/
+			else if (attri.type == "float") {
+				float i;
+				memcpy(&i, value + offset, attri.size);
+				cout << attri << "\t value: " << i << endl;
+			}
 			offset += attri.size;
 		}
 	}
@@ -119,18 +131,28 @@ public:
 				istringstream in(c);
 				in >> v;
 				memcpy(value + offset, &v, a.size);
-				int a1 = -1;
+	/*			int a1 = -1;
 				memcpy(&a1, value + offset, a.size);
-				cout << a1 << " " << v << endl;
+				cout << a1 << " " << v << endl;*/
 			}
 			else if (a.type == "char") {
 				memcpy(value + offset, c.c_str(), c.size());
 				//memcpy(value+offset)
 				memset(value + offset + c.size(), char('\0'), 1);
 			}
+			else if (a.type == "float") {
+				float v;
+				istringstream in(c);
+				in >> v;
+				memcpy(value + offset, &v, a.size);
+	/*			cout << "float" <<v << endl;
+				sprintf(value + offset, "%f", v);
+				float i;
+				memcpy(&i, value + offset, 4);
+				cout << "\t value: " << i << endl;*/
+			}
 			offset += a.size;
 		}
-		cout << *(int*)value << endl;
 
 		return value;
 	}

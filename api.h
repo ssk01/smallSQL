@@ -32,8 +32,8 @@ void showTableRecord(const string &name){
 		CatalogManager::instance().showTableRecord(name, value);
 	}
 }
-void addIndex(const string& tableName, const string& indexName, const string& attriName) {
-	CatalogManager::instance().addIndex(tableName, indexName, attriName);
+void addIndex(const string& tableName, const string& indexName, const string& attrName) {
+	CatalogManager::instance().addIndex(tableName, indexName, attrName);
 }
 void showIndex(const string& tableName, const string& indexName) {
 	CatalogManager::instance().showIndex(tableName, indexName);

@@ -9,54 +9,63 @@ class Tokenizer {
 		Char,
 		Int,
 		Float,
+		SingeQuote,
+		DoubleQute,
 	};
 	vector<Token> tokens;
 	string input;
 	State state;
 	string cur;
+	int line;
+	int col;
 	//int	i = 0;
 	void add_colon() {
-		tokens.push_back(Token(cur));
+		tokens.push_back(Token(cur, line, col));
 		cur = "";
 		state = None;
 	}
 	void add(const string &type) {
-		tokens.push_back(Token(type, cur));
+		tokens.push_back(Token(type, cur, line, col));
 		cur = "";
+		state = None;
 	}	
-	void peek() {
+	void get() {
 		cur.push_back(input[i]);
+		col++;
 		i += 1;
 	}
 	void skip() {
 		i += 1;
-		state = None;
+		col++;
 	}
 	int i = 0;
 
 public:
-	Tokenizer(const string& input) :input(input), state(None){
+	Tokenizer(const string& input) :input(input), state(None), line(1), col(1){
 
 	}
 	vector<Token> generate() {
-		map<int, string> type{ {Char, "char"}, {Int ,"int"},{Float, "float"}, {None,"None" } };
+		map<int, string> type{ {Char, "char"}, {Int ,"int"},{Float, "float"}, {None,"None" },{ SingeQuote ,"char" },{DoubleQute ,"char" } };
 		auto error = [&]() {
 			for (auto t : tokens) {
 				show(t);
 			}
-			cout << cur << "\t" << input[i] <<"\t" << type[state] << endl;
+			cout <<"cur: " <<cur << "\t" << "c: "<< input[i] <<"\tstate: " << type[state] << "line: " << line <<"col: " << col << endl;
 			exit(0);
 		};
 		auto other = [&](char c = 'a') {
-			if (string(",;()\"").find(c) != -1) {
+			if (string(",;()").find(c) != -1) {
 				if (state != None) {
 					add(type[state]);
 				}
-				peek();
+				get();
 				add_colon();
 				return true;
 			}
 			else if (isspace(c)) {
+				if (c == '\n') {
+					line++;
+				}
 				if (state != None) {
 					add(type[state]);
 				}
@@ -69,36 +78,74 @@ public:
 			char c = input[i];
 			switch (state) {
 			case None:
-				if (other(c)){}
+				if (other(c)){
+					assert(cur.empty());
+				}
 				else if (isalpha(c)) {
-					peek();
+					get();
 					state = Char;
 				}
 				else if (isdigit(c)) {
-					peek();
+					get();
 					state = Int;
+				}
+				else if (c == '\''){
+					//get();
+					skip();
+					state = SingeQuote;
+				}
+				else if (c == '"') {
+					//get();
+					skip();
+					state = DoubleQute;
 				}
 				else {
 					error();
 				}
 				break;
+			case SingeQuote:
+				if (other(c)) {
+					assert(cur.empty());
+				} else if (c == '\'') {
+					skip();
+					add("char");
+				}
+				else {
+					get();
+				}
+				break;
+			case DoubleQute:
+				if (other(c)) {
+					assert(cur.empty());
+				}
+				else if (c == '"') {
+					skip();
+					add("char");
+				}
+				else {
+					get();
+				}
+				break;
 			case Char:
 				if (other(c)){
+					assert(cur.empty());
 				}
 				else if (isalnum(c) || c == '_') {
-					peek();
+					get();
 				}
 				else {
 					error();
 				}
 				break;
 			case Int:
-				if (other(c)){}
+				if (other(c)){
+					assert(cur.empty());
+				}
 				else if (isdigit(c)) {
-					peek();
+					get();
 				}
 				else if (c == '.') {
-					peek();
+					get();
 					state = Float;
 				}
 				else {
@@ -106,9 +153,11 @@ public:
 				}
 				break;
 			case Float:
-				if (other(c)){}
+				if (other(c)){
+					assert(cur.empty());
+				}
 				else if (isdigit(c)) {
-					peek();
+					get();
 				}
 				else {
 					error();

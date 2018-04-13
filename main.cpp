@@ -1,7 +1,13 @@
 #include "api.h"
 #include "token.h"
 #include "Tokenizer.h"
+#include "Interpreter.h"
 using namespace std;
+
+
+// todo  char '\0' insert
+//insert index interpreter
+//select 
 void test1() {
 	Attribute a{ "age","int", 4 };
 	Attribute b{ "dollor","char", 6};
@@ -18,36 +24,55 @@ void test1() {
 	showTableRecord(tableName);
 	showIndex(tableName, indexName);
 }
-void tokenizerTest() {
+void tokenizerIndexsTest() {
 	string input(R"(create table person(
-
 	height float unique,
 		pid int,
 		name char(32),
 		identity char(128) unique,
 		age int unique,
 		primary key(pid)
+
 );)");
+}
+void tokenizerTest() {
+	string input(R"(
+create table person(
+	height float unique,
+		pid int,
+		name char(32),
+		identity char(128) unique,
+		age int unique,
+
+);)");
+//	create index idx_age on person(age);
+//
+//	drop index idx_height;
+//	drop table person;
 	string input1(R"(
-	insert into person values(188.1, 18, "Person18", "000018", 35);
-	insert into person values(189.1, 19, "Person19", "000019", 36);
-	insert into person values(190.1, 20, "Person20", "000020", 37);
+create table person(
+	height float unique,
+		pid int,
+		name char(32),
+		identity char(128) unique,
+		age int unique,
+);
+create index idx_age on person(age);
+insert into person values(188.1, 18, "Person18", "000018", 35);
 
-	create index idx_height on person(height);
-	create index idx_identity on person(identity);
-	create index idx_age on person(age);
-
-	drop index idx_height;
-	drop index idx_identity;
-	drop index idx_age;
-
-	drop table person;
 )");
-	for (auto t : Tokenizer(input1).generate()) {
-		show(t);
-	}
+	//Interpreter s(input1);
+		//.run();
+	Interpreter(input1).run();
+	//for (auto t : Tokenizer(input).generate()) {
+	//	//show(t);
+	//	cout << t << endl;
+	//}
 }
 int main() {
 	//test1();
 	tokenizerTest();
+	char *a = "abc\0";
+		char *a1 = "abc\0";
+	cout <<  strlen(a) << strlen(a1) << endl;
 }
