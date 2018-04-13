@@ -1,31 +1,26 @@
 #pragma once
 #include "attribute.h"
 #include "RecordManager.h"
-#include "index.h"
 #include <tuple>
 #include <set>
 #include "token.h"
 
 using std::tuple;
-using std::set;
 class CatalogManager {
 public:
 	static CatalogManager& instance() {
 		static CatalogManager cm;
 		return cm;
 	}
+	int attributeOffset(const string& name, int i) {
+		return nameTables[name].attributeOffset(i);
+	}
 	void addTable(const string& name, vector<Attribute>& attr) 
 	{
 		nameTables[name] = { name, attr };
 		RecordManager::instance().createTable(name, nameTables[name].size());
 	}
-	void addIndex(const string& name, const string& indexName, const string& attrName) {
-		if (existed(name, indexName)) {
-			//return false;
-		}
-		auto type = attributeType(name, attrName);
-		nameTables[name].addIndex(indexName, attrName);
-	}
+
 	string attributeType(const string& name, const string& attrName) {
 		return nameTables[name].attributeType(attrName);
 	}
@@ -34,23 +29,9 @@ public:
 
 		return nameTables[name].showRecord(value);
 	}
-	void showIndex(const string& tableName, const string& indexName) {
-		existed(tableName, indexName);
-		nameIndexs[tableName].showIndex(indexName);
-	}
 
-	void insertIndex(const string& tableName, const string& indexName, const Token& content,int i, RecordList::Record record) {
-		//exist(name, indexName, key);
-		if (existed(tableName, indexName)) {
-			if (content.type == "int") {
-				auto key = nameTables[tableName].intAttri(content.content, i);
-				nameIndexs[tableName].insertIndex(indexName, key, record);
-			} else if (content.type == "char") {
-				auto key = nameTables[tableName].charAttri(content.content, i);
-				nameIndexs[tableName].insertIndex(indexName, key, record);
-
-			}
-		}
+	void addIndex(const string& name, const string& indexName, const string& attrName) {
+		nameTables[name].addIndex(indexName, attrName);
 	}
 	//void showTableRecord(const string& name) {
 	//	return nameTables[name].showRecord();
@@ -61,20 +42,25 @@ public:
 	int getEntrySize(const string& name) {
 		return nameTables[name].size();
 	}
+	string getIndexName(const string& name, int i) {
+		return nameTables[name].getIndexName(i);
+	}
+	vector<tuple<int, bool>> getUniqueAttri(const string& name) {
+		return nameTables[name].getUniqueAttri();
+	}
 	using aa = tuple<int, string, string>;
 	vector<aa> getIndexAttri(const string& name) {
 		return nameTables[name].getIndexAttri();
 	}
 
-private:
 	bool existed(const string& name, const string& indexName) {
 		return nameTables[name].indexExisted(indexName);
 	}
+private:
 
 
 	CatalogManager(){}
 	map<string, Table> nameTables;
-	map<string, Indexs> nameIndexs;
 	//map<string, set<string>> intIndex;
 	//map<string, set<string>> stringIndex;
 };

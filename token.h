@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include <ostream>
+#include <sstream>
 using std::string;
 using std::cout;
 using std::endl;
@@ -22,6 +23,15 @@ public:
 	}
 	bool operator!=(string c) {
 		return content != c;
+	}
+	int toInt() const {
+		std::istringstream in(content);
+		int key;
+		in >> key;
+		return key;
+	}
+	string toString() const {
+		return content;
 	}
 };
 void show(Token t) {

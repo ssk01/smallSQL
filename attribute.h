@@ -40,7 +40,7 @@ public:
 		return v;
 	}
 	void setIndex(const string& Name) {
-
+		unique = true;
 		indexName = Name;
 	}
 private:
@@ -56,6 +56,15 @@ public:
 	Table(const string& name, vector<Attribute>& attr) : tablename(name), attributes(attr) {
 	}
 	Table(){}
+	//todo can be do init
+	int attributeOffset(int j) {
+		int off = 0;
+		for (auto i = 0; i < j; i++) {
+			auto a = attributes[i];
+			off += a.size;
+		}
+		return off;
+	}
 	bool indexExisted(const string& indexName) {
 		for (auto &a : attributes) {
 			if (a.indexName == indexName) {
@@ -63,6 +72,10 @@ public:
 			}
 		}
 		return false;
+	}
+	string getIndexName(int i) {
+		assert(attributes[i].indexName != "");
+		return attributes[i].indexName;
 	}
 	void addIndex(const string& indexName, const string& attrName) {
 		for (auto &a : attributes) {
@@ -105,6 +118,16 @@ public:
 			auto a = attributes[i];
 			if (a.indexName != "") {
 				res.emplace_back(i, a.indexName, a.type);
+			}
+		}
+		return res;
+	}
+	vector<tuple<int, bool>> getUniqueAttri() {
+		vector<tuple<int, bool>>  res;
+		for (auto i = 0; i < attributes.size(); i++) {
+			auto a = attributes[i];
+			if (a.unique == true) {
+				res.emplace_back(i, a.indexName != "");
 			}
 		}
 		return res;
@@ -156,14 +179,14 @@ public:
 
 		return value;
 	}
-	int intAttri(const string& content, int i) {
-		auto a = attributes[i];
-		return a.val(content, int(0));
-	}
-	string charAttri(const string& content, int i) {
-		auto a = attributes[i];
-		return a.val(content, string());
-	}
+	//int intAttri(const string& content) {
+	//	auto a = attributes[i];
+	//	return a.val(content, int(0));
+	//}
+	//string charAttri(const string& content, int i) {
+	//	auto a = attributes[i];
+	//	return a.val(content, string());
+	//}
 	int size() {
 		int s = 0;
 		for (auto & a : attributes) {

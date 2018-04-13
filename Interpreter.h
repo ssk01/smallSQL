@@ -45,8 +45,8 @@ public:
 			assertNext(";");
 		}
 		insertRecord(tableName, content);
-		insertRecord(tableName, content);
-		insertRecord(tableName, content);
+		//insertRecord(tableName, content);
+		//insertRecord(tableName, content);
 		showTableRecord(tableName);
 		showIndex(tableName, "idx_age");
 		/*for (auto &c : content) {

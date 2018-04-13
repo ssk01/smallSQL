@@ -51,16 +51,17 @@ create table person(
 //	drop table person;
 	string input1(R"(
 create table person(
-	height float unique,
+	height float,
 		pid int,
 		name char(32),
-		identity char(128) unique,
+		identity char(128),
 		age int unique,
 );
-create index idx_age on person(age);
+insert into person values(188.1, 18, "Person18", "000018", 35);
 insert into person values(188.1, 18, "Person18", "000018", 35);
 
 )");
+//create index idx_age on person(age);
 	//Interpreter s(input1);
 		//.run();
 	Interpreter(input1).run();
