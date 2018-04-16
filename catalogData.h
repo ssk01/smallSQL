@@ -1,10 +1,10 @@
 #pragma once
 #include "attribute.h"
-#include "RecordManager.h"
 #include <tuple>
 #include <set>
 #include "token.h"
-
+#include <map>
+using std::map;
 using std::tuple;
 class CatalogManager {
 public:
@@ -15,10 +15,12 @@ public:
 	int attributeOffset(const string& name, int i) {
 		return nameTables[name].attributeOffset(i);
 	}
+	int attributeOrder(const string& name, const string& attrName) {
+		return nameTables[name].attributeOrder(attrName);
+	}
 	void addTable(const string& name, vector<Attribute>& attr) 
 	{
 		nameTables[name] = { name, attr };
-		RecordManager::instance().createTable(name, nameTables[name].size());
 	}
 
 	string attributeType(const string& name, const string& attrName) {
@@ -26,7 +28,7 @@ public:
 	}
 	void showTableRecord(const string& name, char *value) {
 		//cout <<"ttt" << *(int*)value << endl;
-
+		cout << "Table: " + name << endl;
 		return nameTables[name].showRecord(value);
 	}
 
@@ -52,14 +54,20 @@ public:
 	vector<aa> getIndexAttri(const string& name) {
 		return nameTables[name].getIndexAttri();
 	}
-
+	bool existed(const string& name) {
+		if (nameTables.find(name) == nameTables.end()) {
+			return false;
+		}
+		return true;
+	}
 	bool existed(const string& name, const string& indexName) {
 		return nameTables[name].indexExisted(indexName);
 	}
 private:
 
 
-	CatalogManager(){}
+	CatalogManager() {
+	}
 	map<string, Table> nameTables;
 	//map<string, set<string>> intIndex;
 	//map<string, set<string>> stringIndex;

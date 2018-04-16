@@ -2,12 +2,32 @@
 #include <list>
 #include <string>
 #include <iostream>
+#include "block.h"
 #include "util.h"
+#include "to.h"
+//extern void fuck1();
 using std::cout;
 using std::endl;
 using std::list;
 using std::string;
-class BufferManager;
+class Block;
+
+class BufferManager {
+public:
+	using ListIter = std::list<Block *>::iterator;
+	Block& find_or_alloc(const std::string& fileName, int blockIndex);
+	static BufferManager& instance()
+	{
+		static BufferManager instance;
+		return instance;
+	}
+private:
+	list<Block *> blocks;
+	const static int BlockCount = 128;
+		
+	Block& alloc_block(const std::string& fileName, int blockIndex);
+	ListIter findBlock(const std::string& fileName, int blockIndex);
+};
 class Block {
 public:
 	//friend class Recordlist;
@@ -27,20 +47,4 @@ private:
 	string fileName;
 	int blockIndex;
 	int offset;
-};
-class BufferManager {
-public:
-	using ListIter = std::list<Block *>::iterator;
-	Block& find_or_alloc(const std::string& fileName, int blockIndex);
-	static BufferManager& instance()
-	{
-		static BufferManager instance;
-		return instance;
-	}
-private:
-	list<Block *> blocks;
-	const static int BlockCount = 128;
-		
-	Block& alloc_block(const std::string& fileName, int blockIndex);
-	ListIter findBlock(const std::string& fileName, int blockIndex);
 };

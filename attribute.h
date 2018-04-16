@@ -65,6 +65,14 @@ public:
 		}
 		return off;
 	}
+	int attributeOrder(const string &attrName) {
+		for (auto i = 0; i < attributes.size(); i++) {
+			if (attrName == attributes[i].name) {
+				return i;
+			}
+		}
+		assert(0);
+	}
 	bool indexExisted(const string& indexName) {
 		for (auto &a : attributes) {
 			if (a.indexName == indexName) {
@@ -140,7 +148,6 @@ public:
 	//}
 	char* toEntry(const vector<Token>& content) {
 		char *value = new char[size()];
-		cout << *(int*)value << endl;
 		int offset = 0;
 		//for (auto &a : attributes) {
 		for (auto i = 0; i < content.size(); i++) {

@@ -30,15 +30,14 @@ public:
 		in >> key;
 		return key;
 	}
+	float toFloat() const {
+		std::istringstream in(content);
+		float key;
+		in >> key;
+		return key;
+	}
 	string toString() const {
 		return content;
 	}
 };
-void show(Token t) {
-	std::cout << "type: " << t.type << "\tcontent: " << t.content << std::endl;
-}
-ostream& operator<<(ostream& out, Token t)
-{
-	out << "type: " << t.type << "\tcontent: " << t.content;
-	return out;
-};
+void show(Token t);

@@ -2,6 +2,7 @@
 #include "token.h"
 #include "Tokenizer.h"
 #include "Interpreter.h"
+
 using namespace std;
 
 
@@ -35,6 +36,12 @@ void tokenizerIndexsTest() {
 
 );)");
 }
+auto showToken = [](string intput) {
+	for (auto t : Tokenizer(intput).generate()) {
+		//show(t);
+		cout << t << endl;
+	}
+};
 void tokenizerTest() {
 	string input(R"(
 create table person(
@@ -61,19 +68,29 @@ insert into person values(188.1, 18, "Person18", "000018", 35);
 insert into person values(188.1, 18, "Person18", "000018", 35);
 
 )");
+	string search(R"(
+create table person(
+	height float,
+		pid int,
+		name char(32),
+		identity char(128),
+		age int unique,
+);
+insert into person values(188.1, 18, "Person18", "000018", 35);
+insert into person values(168.1, 18, "Person18", "000018", 32);
+insert into person values(168.1, 18, "Person18", "000018", 33);
+	select * from person where height <= 176.3;
+select * from person where height <= 176.3 and age != 33;
+
+)");
 //create index idx_age on person(age);
-	//Interpreter s(input1);
+	Interpreter s(search);
+	s.run();
 		//.run();
-	Interpreter(input1).run();
-	//for (auto t : Tokenizer(input).generate()) {
-	//	//show(t);
-	//	cout << t << endl;
-	//}
+	//Interpreter(search)
+
 }
 int main() {
 	//test1();
 	tokenizerTest();
-	char *a = "abc\0";
-		char *a1 = "abc\0";
-	cout <<  strlen(a) << strlen(a1) << endl;
 }

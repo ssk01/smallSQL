@@ -2,6 +2,8 @@
 #include <stdexcept>
 #include <string>
 #include <assert.h>
+int Int(char *value);
+float Float(char *value);
 class InsuffcientSpace : public std::runtime_error
 {
 public:

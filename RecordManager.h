@@ -5,7 +5,8 @@
 #include <map>
 #include "block.h"
 #include "util.h"
-
+#include "condition.h"
+#include "catalogData.h"
 using std::pair;
 using std::list;
 using std::vector;
@@ -26,6 +27,46 @@ public:
 			res.push_back(value);
 		}
 		return res;
+	}
+	vector<char *> select(const vector<Condition>& conds) {
+		char *byteValue = new char[entrySize];
+		vector<char *> byteValues;
+		for (auto &entry : records) {
+
+			//todo it must be find
+			auto block = BufferManager::instance().find_or_alloc(tableName, entry.first);
+			char *byteValue = block.rawPtr() + entry.second * entrySize;
+			//memcpy(byteValue, block.rawPtr() + entry.second * entrySize, entrySize);
+			int condTure = 0;
+			for (auto &c : conds) {
+				auto off = CatalogManager::instance().attributeOffset(tableName, c.i);
+		/*		memcpy(byteValue, block.rawPtr() + entry.second * entrySize, entrySize);*/
+				if (c.token.type == "int") {
+					auto val = Int(byteValue + off);
+					if (Condition::eval(c.op, c.token.toInt(), val)) {
+						condTure += 1;
+						continue;
+					}
+					else {
+						break;
+					}
+				} else if (c.token.type == "float") {
+					auto val = Float(byteValue + off);
+					if (Condition::eval(c.op, val, c.token.toFloat())) {
+						condTure += 1;
+						continue;
+					}
+					else {
+						break;
+					}
+				}
+				//assert attribute type:
+			}
+			if (condTure == conds.size()) {
+				byteValues.push_back(byteValue);
+			}
+		}
+		return byteValues;
 	}
 	bool recordExist(const Token& content, int i, int offset) {
 		char *byteValue = new char[entrySize];
@@ -85,6 +126,9 @@ public:
 	static RecordManager& instance() {
 		static RecordManager rm;
 		return rm;
+	}
+	vector<char *> select(const string& tableName, const vector<Condition>& conds) {
+		return tableInfos[tableName].select(conds);
 	}
 	void createTable(const string &name, int entrySize) {
 		if (!tableExisted(name)) {

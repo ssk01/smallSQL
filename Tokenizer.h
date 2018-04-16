@@ -50,11 +50,12 @@ public:
 			for (auto t : tokens) {
 				show(t);
 			}
+			cout << "error:__________________" << endl;
 			cout <<"cur: " <<cur << "\t" << "c: "<< input[i] <<"\tstate: " << type[state] << "line: " << line <<"col: " << col << endl;
 			exit(0);
 		};
 		auto other = [&](char c = 'a') {
-			if (string(",;()").find(c) != -1) {
+			if (string(",;()*<>=!").find(c) != -1) {
 				if (state != None) {
 					add(type[state]);
 				}

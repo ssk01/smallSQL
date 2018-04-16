@@ -1,6 +1,7 @@
 #pragma once
 #include "Tokenizer.h"
 #include "attribute.h"
+#include "condition.h"
 #include <sstream>
 #include "api.h"
 class Interpreter {
@@ -47,8 +48,8 @@ public:
 		insertRecord(tableName, content);
 		//insertRecord(tableName, content);
 		//insertRecord(tableName, content);
-		showTableRecord(tableName);
-		showIndex(tableName, "idx_age");
+		//showTableRecord(tableName);
+		//showIndex(tableName, "idx_age");
 		/*for (auto &c : content) {
 			cout << c << endl;
 		}*/
@@ -87,9 +88,64 @@ public:
 		//	cout << a << endl;
 		//}
 	}
+	void select() {
+	//type: char      content : select
+	//	type : *content : *
+	//	type : char      content : from
+	//	type : char      content : person
+	//	type : char      content : where
+	//	type : char      content : height
+	//	type : < content : <
+	//	type : = content : =
+	//	type : float     content : 176.3
+	//	type : ; content:;
+		assertNext("*");
+		assertNext("from");
+		auto tableName = get("char");
+		assertNext("where");
+		vector<Condition> conds;
+		while (!end()) {
+			auto attriName = get("char");
+			string opType("!=><");
+			string op = "";
+			while (opType.find(peek().type) != -1) {
+				op+=get().content;
+			}
+			auto token = get();
+			conds.emplace_back(attriName, op, token);
+			if (end()) {
+				break;
+			}
+			else if (peek(";")) {
+				break;
+			}
+			else {
+				assertNext("and");
+			}
+		}
+		/*for (const auto& c : conds){
+			cout << c << endl;
+		}*/
+		selects(tableName, conds);
+
+		/*if (peek("!")) {
+			assertNext("=");
+			auto token = get();
+			conds.emplace_back(attriName, "!=", token);
+		}
+		else if (peek(">")) {
+			if (peek("=")) {
+				auto token = get();
+				conds.emplace_back(attriName, ">=", token);
+			}
+			else {
+				auto token = get();
+				conds.emplace_back(attriName, ">=", token);
+			}
+		}*/
+	}
 	void run() {
 		while (!end()) {
-
 			if (peek("create")) {
 				if (peek("table")) {
 					createTable();
@@ -99,6 +155,9 @@ public:
 				}
 			} else if(peek("insert")){
 				insert();
+			}
+			else if (peek("select")) {
+				select();
 			}
 			else {
 				cout << "fuck" << endl;
