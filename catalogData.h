@@ -1,9 +1,10 @@
 #pragma once
-#include "attribute.h"
 #include <tuple>
 #include <set>
-#include "token.h"
 #include <map>
+#include "attribute.h"
+#include "errors.h"
+#include "token.h"
 using std::map;
 using std::tuple;
 class CatalogManager {
@@ -26,6 +27,11 @@ public:
 	string attributeType(const string& name, const string& attrName) {
 		return nameTables[name].attributeType(attrName);
 	}
+	const Attribute& attribute(const string& name, const string& attrName) {
+		return nameTables[name].attribute(attrName);
+		
+	}
+
 	void showTableRecord(const string& name, char *value) {
 		//cout <<"ttt" << *(int*)value << endl;
 		cout << "Table: " + name << endl;
@@ -33,7 +39,10 @@ public:
 	}
 
 	void addIndex(const string& name, const string& indexName, const string& attrName) {
-		nameTables[name].addIndex(indexName, attrName);
+		if (!nameTables[name].addIndex(indexName, attrName)) {
+			string res = "tablename: " + name + "no  attrName: " + attrName + "for indexName: " + indexName;
+			throw IndexError(res.c_str());
+		}
 	}
 	//void showTableRecord(const string& name) {
 	//	return nameTables[name].showRecord();
@@ -57,6 +66,37 @@ public:
 	vector<aa> getIndexAttri(const string& name) {
 		return nameTables[name].getIndexAttri();
 	}
+	void assertTypeEqual(const string& name, const vector<Token>& content) {
+		string res;
+		if (!nameTables[name].typeEqual(content, res)) {
+			string msg = "table: " + name + "type not match :\n" + res;
+			throw TableError(msg.c_str());
+		}
+	}
+	void assertExisted(const string& name) {
+		if (!existed(name)) {
+			string msg = "table: " + name + "not existed ";
+			throw TableError(msg.c_str());
+		}
+	}
+	void assertNotExisted(const string& name) {
+		if (existed(name)) {
+			string msg = "table: " + name + " existed ";
+			throw TableError(msg.c_str());
+		}
+	}
+	void assertExisted(const string& name, const string& indexName) {
+		if (!existed(name, indexName)) {
+			string msg = "table: " + name + "'s +idnex: " + name + " existed ";
+			throw TableError(msg.c_str());
+		}
+	}
+	void assertNotExisted(const string& name, const string& indexName) {
+		if (existed(name, indexName)) {
+			string msg = "table: "+ name+"'s +idnex: " + name + " existed ";
+			throw TableError(msg.c_str());
+		}
+	}
 	bool existed(const string& name) {
 		if (nameTables.find(name) == nameTables.end()) {
 			return false;
@@ -64,7 +104,7 @@ public:
 		return true;
 	}
 	bool existed(const string& name, const string& indexName) {
-		return nameTables[name].indexExisted(indexName);
+		return (existed(name) && nameTables[name].indexExisted(indexName));
 	}
 private:
 

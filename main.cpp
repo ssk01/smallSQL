@@ -76,17 +76,17 @@ create table person(
 		identity char(128),
 		age int unique,
 );
-insert into person values(188.1, 18, "Person18", "000018", 35);
-insert into person values(168.1, 18, "Person18", "000018", 32);
-insert into person values(168.1, 18, "Person18", "000018", 33);
-insert into person values(168.1, 18, "Person18", "000018", 332);
-insert into person values(168.1, 18, "Person18", "000018", 331);
-	select * from person where height <= 176.3;
+create index name1 on person(name);
+insert into person values(188.1, 18, "Person11", "000018", 35);
+insert into person values(168.1, 18, "Person12", "000018", 32);
+insert into person values(168.1, 18, "Person13", "000018", 33);
+insert into person values(168.1, 18, "Person14", "000018", 332);
+insert into person values(168.1, 18, "Person15", "000018", 331);
+	select * from person where name != "Person15" and height < 170.1;
 
-	select * from person where height <= 176.3 and age != 33;
 
 )");
-//create index idx_age on person(age);
+	//select * from person where height <= 176.3 and age != 33; 
 	Interpreter s(search);
 	s.run();
 		//.run();

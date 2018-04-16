@@ -1,12 +1,13 @@
 #pragma once
 #include <string>
 #include <iostream>
-#include "util.h"
 #include <vector>
 #include <sstream>
+#include <ostream>
 #include <tuple>
 #include "token.h"
-
+#include "util.h"
+#include "errors.h"
 using std::tuple;
 using std::string;
 using std::vector;
@@ -43,12 +44,12 @@ public:
 		unique = true;
 		indexName = Name;
 	}
-private:
 	string name;
 	string type;
 	string indexName;
 	bool unique;
 	int size;
+private:
 };
 
 class Table {
@@ -57,6 +58,22 @@ public:
 	}
 	Table(){}
 	//todo can be do init
+	bool typeEqual(const vector<Token>& content, string& res) {
+		if (content.size() != attributes.size()) {
+			return false;
+		}
+		for (size_t i = 0; i < content.size(); i++) {
+			if (content[i].type != attributes[i].type) {
+				std::ostringstream o;
+				o << content[i];
+				std::ostringstream o1;
+				o1 << content[i];
+				res = string("content: ") + o.str() + "\n attribute: " + o1.str();
+				return false;
+			}
+		}
+		return true;
+	}
 	int attributeOffset(int j) {
 		int off = 0;
 		for (auto i = 0; i < j; i++) {
@@ -71,6 +88,8 @@ public:
 				return i;
 			}
 		}
+		string res = "Table " +tablename+" "+ attrName + "not existed";
+		throw TableError(res.c_str());
 		assert(0);
 	}
 	bool indexExisted(const string& indexName) {
@@ -82,21 +101,29 @@ public:
 		return false;
 	}
 	string getIndexName(int i) {
-		assert(attributes[i].indexName != "");
+		//assert(attributes[i].indexName != "");
 		return attributes[i].indexName;
 	}
-	void addIndex(const string& indexName, const string& attrName) {
+	bool addIndex(const string& indexName, const string& attrName) {
 		for (auto &a : attributes) {
 			if (a.name == attrName) {
 				a.setIndex(indexName);
-				return;
+				return true;
 			}
 		}
+		return false;
 	}
 	string attributeType(const string& attrName) {
 		for (auto &a : attributes) {
 			if (a.name == attrName) {
 				return a.type;
+			}
+		}
+	}
+	const Attribute& attribute (const string& attrName)  {
+		for (const auto &a : attributes) {
+			if (a.name == attrName) {
+				return a;
 			}
 		}
 	}

@@ -1,14 +1,22 @@
 #pragma once
 #include "token.h"
 #include <iostream>
+#include <ostream>
+
 class Condition {
 	friend ostream& operator<<(ostream& out, const Condition &c) {
 		out << "codition: " << "attriName: " << c.attriName << "\top: " << c.op << "\ttoken: " << c.token;
 		return out;
 	};
 public:
-	void initAttrbuteOrder(const string& tableName) const {
+	void init(const string& tableName) const {
 		i = CatalogManager::instance().attributeOrder(tableName, attriName);
+		indexName = CatalogManager::instance().attribute(tableName, attriName).indexName;
+	}
+	string str() const {
+		std::ostringstream out;
+		out << *this;
+		return out.str();
 	}
 	template<class T>
 	static bool eval(string op, T lhs, T rhs) {
@@ -24,6 +32,7 @@ public:
 
 	}
 	string attriName;
+	mutable string indexName;
 	string op;
 	Token token;
 	mutable int i;

@@ -18,6 +18,11 @@ public:
 	Token(string type, string content, int line = 0, int col = 0) :type(type), content(content), line(line), col(col) {}
 	Token(string content, int line = 0, int col = 0):type(content), content(content), line(line), col(col) {
 	}
+	string str()const {
+		std::ostringstream out;
+		out << *this;
+		return out.str();
+	}
 	bool operator==(string c) {
 		return content == c;
 	}

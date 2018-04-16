@@ -1,17 +1,19 @@
 #include "api.h"
 #include <algorithm>
 #include <set>
+#include "catalogData.h"
 using std::set;
 
 void selects(const string& tableName, const vector<Condition>& conds) {
-	for (auto &c : conds) {
-		c.initAttrbuteOrder(tableName);
+	CatalogManager::instance().assertExisted(tableName);
+	for (const auto &c : conds) {
+		c.init(tableName);
 	}
 	//indexes;
 	auto indexesConditon = vector<Condition>();
 	auto normalConditon = vector<Condition>();
 	std::for_each(conds.begin(), conds.end(), [&](const Condition & c) {
-		if (CatalogManager::instance().existed(tableName, c.attriName)) {
+		if (c.indexName != "") {
 			indexesConditon.push_back(c);
 		}
 		else {
@@ -21,7 +23,7 @@ void selects(const string& tableName, const vector<Condition>& conds) {
 	vector<char *> ByteValues;
 	if (!indexesConditon.empty()) {
 		set<pair<int, int>> matched;
-		for (auto &c : conds) {
+		for (auto &c : indexesConditon) {
 			auto tmp = IndexManager::instance().select(tableName, c);
 			matched.insert(tmp.begin(), tmp.end());
 		}
@@ -39,16 +41,23 @@ void selects(const string& tableName, const vector<Condition>& conds) {
 }
 
 void addTable(const string& name, vector<Attribute>& attr) {
+	CatalogManager::instance().assertNotExisted(name);
 	CatalogManager::instance().addTable(name, attr);
 	RecordManager::instance().createTable(name, CatalogManager::instance().getEntrySize(name));
 }
+
+
+// add index prev added record;
+void addIndex(const string& tableName, const string& indexName, const string& attrName) {
+	CatalogManager::instance().assertExisted(tableName);
+	CatalogManager::instance().assertNotExisted(tableName, indexName);
+	CatalogManager::instance().addIndex(tableName, indexName, attrName);
+}
+
+
 void insertRecord(const string &name, const vector<Token>& content) {
-	//auto uniq_offsets = CatalogManager::instance().unique
-
-
-	//todo assert operator;
-
-
+	CatalogManager::instance().assertExisted(name);
+	CatalogManager::instance().assertTypeEqual(name, content);
 	for (auto uniqueAttr : CatalogManager::instance().getUniqueAttri(name)) {
 		auto i = std::get<0>(uniqueAttr);
 		auto hasIndex = std::get<1>(uniqueAttr);
@@ -56,16 +65,16 @@ void insertRecord(const string &name, const vector<Token>& content) {
 			auto indexName = CatalogManager::instance().getIndexName(name, i);
 			if (IndexManager::instance().indexRecordExisted(name, indexName, content[i])) {
 				//"fuck"
-				assert(0);
-
+				string res("tablename: " + name + "indexName +" + indexName + "  " + content[i].str()+ "algready existed");
+				throw InsertError(res.c_str());
 			};
 		}
 		else {
 			auto offset = CatalogManager::instance().attributeOffset(name, i);
 			if (RecordManager::instance().recordExist(name, content[i], i, offset)) {
 				//cout << "fuck"<<a
-				cout << content[i] << endl;
-				assert(0);
+				string res("tablename: " + name  + content[i].str() + "algready existed");
+				throw InsertError(res.c_str());
 			}
 		}
 	}
@@ -83,6 +92,8 @@ void insertRecord(const string &name, const vector<Token>& content) {
 }
 void showTableRecord(const string &name) {
 	//CatalogManager::instance().
+	CatalogManager::instance().assertExisted(name);
+
 	auto values = RecordManager::instance().showReocrd(name);
 	cout << "table :" + name << endl;
 	for (auto &value : values) {
@@ -90,13 +101,8 @@ void showTableRecord(const string &name) {
 	}
 	cout << "\n" << endl;
 }
-void addIndex(const string& tableName, const string& indexName, const string& attrName) {
-	//auto type = CatalogManager::instance().attributeType(name, attrName);
-	if (CatalogManager::instance().existed(tableName, indexName)) {
-		//return false;
-	}
-	CatalogManager::instance().addIndex(tableName, indexName, attrName);
-}
 void showIndex(const string& tableName, const string& indexName) {
+	CatalogManager::instance().assertExisted(tableName, indexName);
+
 	IndexManager::instance().showIndex(tableName, indexName);
 }

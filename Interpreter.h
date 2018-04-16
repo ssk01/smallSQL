@@ -127,7 +127,7 @@ public:
 			cout << c << endl;
 		}*/
 		selects(tableName, conds);
-
+		showIndex(tableName, "name1");
 		/*if (peek("!")) {
 			assertNext("=");
 			auto token = get();
@@ -145,24 +145,30 @@ public:
 		}*/
 	}
 	void run() {
-		while (!end()) {
-			if (peek("create")) {
-				if (peek("table")) {
-					createTable();
+		try {
+			while (!end()) {
+				if (peek("create")) {
+					if (peek("table")) {
+						createTable();
+					}
+					else if(peek("index")){
+						createIndex();
+					}
+				} else if(peek("insert")){
+					insert();
 				}
-				else if(peek("index")){
-					createIndex();
+				else if (peek("select")) {
+					select();
 				}
-			} else if(peek("insert")){
-				insert();
+				else {
+					cout << "fuck" << endl;
+					exit(0);
+				}
 			}
-			else if (peek("select")) {
-				select();
-			}
-			else {
-				cout << "fuck" << endl;
-				exit(0);
-			}
+		}
+		catch (runtime_error e) {
+			cout << e.what() << endl;
+			return;
 		}
 	}
 private:

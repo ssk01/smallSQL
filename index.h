@@ -50,6 +50,7 @@ private:
 class Indexs {
 	map<string, Index<int>> intIndex;
 	map<string, Index<string>> charIndex;
+	map<string, Index<float>> floatIndex;
 public:
 
 	Indexs() {};
@@ -59,6 +60,9 @@ public:
 		}
 		if (content.type == "char") {
 			return charIndex[indexName].recordExisted(content.toString());
+		}		
+		if (content.type == "float") {
+			return floatIndex[indexName].recordExisted(content.toFloat());
 		}
 	}
 	void insertIndex(const string& indexName, int key, RecordList::Record record) {
@@ -84,7 +88,11 @@ public:
 		}
 		if (charIndex.find(indexName) != charIndex.end()) {
 			return charIndex[indexName].select(c, c.token.toString());
+		}		
+		if (floatIndex.find(indexName) != floatIndex.end()){
+			return floatIndex[indexName].select(c, c.token.toFloat());
 		}
+
 	}
 };
 class IndexManager {
@@ -99,8 +107,11 @@ public:
 	}
 
 	set<Record> select(const string& tableName, const Condition& c) {
-		auto indexName = CatalogManager::instance().getIndexName(tableName, c.i);
-		return nameIndexs[tableName].select(indexName, c);
+		if (c.indexName == "") {
+			string res = "tableName :" + tableName + c.str() + "is not index , in select index mode";
+			throw IndexError(res.c_str());
+		}
+		return nameIndexs[tableName].select(c.indexName, c);
 	}
 
 	void showIndex(const string& tableName, const string& indexName) {
