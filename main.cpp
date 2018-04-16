@@ -79,8 +79,11 @@ create table person(
 insert into person values(188.1, 18, "Person18", "000018", 35);
 insert into person values(168.1, 18, "Person18", "000018", 32);
 insert into person values(168.1, 18, "Person18", "000018", 33);
+insert into person values(168.1, 18, "Person18", "000018", 332);
+insert into person values(168.1, 18, "Person18", "000018", 331);
 	select * from person where height <= 176.3;
-select * from person where height <= 176.3 and age != 33;
+
+	select * from person where height <= 176.3 and age != 33;
 
 )");
 //create index idx_age on person(age);

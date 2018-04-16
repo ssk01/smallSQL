@@ -1,10 +1,37 @@
 #include "api.h"
+#include <algorithm>
+#include <set>
+using std::set;
 
 void selects(const string& tableName, const vector<Condition>& conds) {
 	for (auto &c : conds) {
 		c.initAttrbuteOrder(tableName);
 	}
-	auto ByteValues = RecordManager::instance().select(tableName, conds);
+	//indexes;
+	auto indexesConditon = vector<Condition>();
+	auto normalConditon = vector<Condition>();
+	std::for_each(conds.begin(), conds.end(), [&](const Condition & c) {
+		if (CatalogManager::instance().existed(tableName, c.attriName)) {
+			indexesConditon.push_back(c);
+		}
+		else {
+			normalConditon.push_back(c);
+		}
+	});
+	vector<char *> ByteValues;
+	if (!indexesConditon.empty()) {
+		set<pair<int, int>> matched;
+		for (auto &c : conds) {
+			auto tmp = IndexManager::instance().select(tableName, c);
+			matched.insert(tmp.begin(), tmp.end());
+		}
+		ByteValues = RecordManager::instance().select(tableName, { matched.begin(), matched.end() }, normalConditon);
+	}
+	//no indexes;
+	else {
+		cout << "no indexes " << endl;
+		ByteValues = RecordManager::instance().select(tableName, conds);
+	}
 	cout << "select result:" << endl;
 	for (auto &value : ByteValues) {
 		CatalogManager::instance().showTableRecord(tableName, value);
@@ -24,8 +51,8 @@ void insertRecord(const string &name, const vector<Token>& content) {
 
 	for (auto uniqueAttr : CatalogManager::instance().getUniqueAttri(name)) {
 		auto i = std::get<0>(uniqueAttr);
-		auto unique = std::get<1>(uniqueAttr);
-		if (unique) {
+		auto hasIndex = std::get<1>(uniqueAttr);
+		if (hasIndex) {
 			auto indexName = CatalogManager::instance().getIndexName(name, i);
 			if (IndexManager::instance().indexRecordExisted(name, indexName, content[i])) {
 				//"fuck"
@@ -64,7 +91,11 @@ void showTableRecord(const string &name) {
 	cout << "\n" << endl;
 }
 void addIndex(const string& tableName, const string& indexName, const string& attrName) {
-	IndexManager::instance().addIndex(tableName, indexName, attrName);
+	//auto type = CatalogManager::instance().attributeType(name, attrName);
+	if (CatalogManager::instance().existed(tableName, indexName)) {
+		//return false;
+	}
+	CatalogManager::instance().addIndex(tableName, indexName, attrName);
 }
 void showIndex(const string& tableName, const string& indexName) {
 	IndexManager::instance().showIndex(tableName, indexName);

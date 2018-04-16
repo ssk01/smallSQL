@@ -1,8 +1,12 @@
 #pragma once
 #include "RecordManager.h"
 #include "catalogData.h"
+#include "condition.h"
 #include <set>
 using std::set;
+using Record = pair<int, int>;
+using Records = vector<Record>;
+
 template<class T>
 class Index {
 public:
@@ -26,6 +30,18 @@ public:
 		}
 
 		return false;
+	}
+	set<Record> select(const Condition& c, T condiValue) {
+		set<Record> res;
+		// map upper_bound
+		for (auto r = indexs.begin(); r != indexs.end(); r++) {
+			auto key = (*r).first;
+			if (Condition::eval(c.op, key, condiValue)) {
+				//continue;
+				res.insert(indexs[key]);
+			}
+		}
+		return res;
 	}
 private:
 	map<T, RecordList::Record> indexs;
@@ -61,7 +77,15 @@ public:
 			charIndex[indexName].showIndex();
 		}
 	}
-	
+	//template<class T>
+	set<Record> select(const string& indexName, const Condition& c) {
+		if (intIndex.find(indexName) != intIndex.end()) {
+			return intIndex[indexName].select(c, c.token.toInt());
+		}
+		if (charIndex.find(indexName) != charIndex.end()) {
+			return charIndex[indexName].select(c, c.token.toString());
+		}
+	}
 };
 class IndexManager {
 public:
@@ -71,17 +95,20 @@ public:
 		return im;
 	}
 	void addIndex(const string& name, const string& indexName, const string& attrName) {
-		if (CatalogManager::instance().existed(name, indexName)) {
-			//return false;
-		}
-		auto type = CatalogManager::instance().attributeType(name, attrName);
-		CatalogManager::instance().addIndex(name, indexName, attrName);
+
 	}
+
+	set<Record> select(const string& tableName, const Condition& c) {
+		auto indexName = CatalogManager::instance().getIndexName(tableName, c.i);
+		return nameIndexs[tableName].select(indexName, c);
+	}
+
 	void showIndex(const string& tableName, const string& indexName) {
 		if (CatalogManager::instance().existed(tableName, indexName)) {
 			nameIndexs[tableName].showIndex(indexName);
 		}
 	}
+	
 	bool indexRecordExisted(const string& tableName, const string& indexName, const Token& content) {
 		return nameIndexs[tableName].indexRecordExisted(indexName, content);
 	}

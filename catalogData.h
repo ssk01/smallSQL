@@ -47,6 +47,9 @@ public:
 	string getIndexName(const string& name, int i) {
 		return nameTables[name].getIndexName(i);
 	}
+	//bool isIndex(const string& name, int i) {
+	//	return nameTables[name].isIndex(i);
+	//}
 	vector<tuple<int, bool>> getUniqueAttri(const string& name) {
 		return nameTables[name].getUniqueAttri();
 	}

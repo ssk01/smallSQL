@@ -10,9 +10,10 @@ public:
 	void initAttrbuteOrder(const string& tableName) const {
 		i = CatalogManager::instance().attributeOrder(tableName, attriName);
 	}
-	static bool eval(string op, int lhs, int rhs) {
+	template<class T>
+	static bool eval(string op, T lhs, T rhs) {
 		if (op == "!=") return lhs != rhs;
-		if (op == "=") return lhs = rhs;
+		if (op == "=") return lhs == rhs;
 		if (op == ">=") return lhs >= rhs;
 		if (op == ">") return lhs > rhs;
 		if (op == "<=") return lhs <= rhs;

@@ -3,6 +3,7 @@
 #include <list>
 #include <vector>
 #include <map>
+#include <set>
 #include "block.h"
 #include "util.h"
 #include "condition.h"
@@ -11,6 +12,8 @@ using std::pair;
 using std::list;
 using std::vector;
 using std::map;
+using std::set;
+using Record = pair<int, int>;
 class RecordList {
 public:
 	using Record = pair<int, int>;
@@ -28,45 +31,44 @@ public:
 		}
 		return res;
 	}
-	vector<char *> select(const vector<Condition>& conds) {
-		char *byteValue = new char[entrySize];
+	vector<char *> select(const vector<Record> &recs, const vector<Condition>& conds) {
 		vector<char *> byteValues;
-		for (auto &entry : records) {
+		for (auto &entry : recs) {
 
 			//todo it must be find
 			auto block = BufferManager::instance().find_or_alloc(tableName, entry.first);
 			char *byteValue = block.rawPtr() + entry.second * entrySize;
-			//memcpy(byteValue, block.rawPtr() + entry.second * entrySize, entrySize);
+
 			int condTure = 0;
 			for (auto &c : conds) {
 				auto off = CatalogManager::instance().attributeOffset(tableName, c.i);
-		/*		memcpy(byteValue, block.rawPtr() + entry.second * entrySize, entrySize);*/
 				if (c.token.type == "int") {
 					auto val = Int(byteValue + off);
-					if (Condition::eval(c.op, c.token.toInt(), val)) {
+					if (Condition::eval(c.op, val, c.token.toInt())) {
 						condTure += 1;
-						continue;
-					}
-					else {
-						break;
-					}
-				} else if (c.token.type == "float") {
-					auto val = Float(byteValue + off);
-					if (Condition::eval(c.op, val, c.token.toFloat())) {
-						condTure += 1;
-						continue;
 					}
 					else {
 						break;
 					}
 				}
-				//assert attribute type:
+				else if (c.token.type == "float") {
+					auto val = Float(byteValue + off);
+					if (Condition::eval(c.op, val, c.token.toFloat())) {
+						condTure += 1;
+					}
+					else {
+						break;
+					}
+				}
 			}
 			if (condTure == conds.size()) {
 				byteValues.push_back(byteValue);
 			}
 		}
 		return byteValues;
+	}
+	vector<char *> select(const vector<Condition>& conds) {
+		return select({records.begin(), records.end()}, conds);
 	}
 	bool recordExist(const Token& content, int i, int offset) {
 		char *byteValue = new char[entrySize];
@@ -129,6 +131,9 @@ public:
 	}
 	vector<char *> select(const string& tableName, const vector<Condition>& conds) {
 		return tableInfos[tableName].select(conds);
+	}
+	vector<char *> select(const string& tableName,const vector<Record> & recs,const vector<Condition>& conds) {
+		return tableInfos[tableName].select(recs, conds);
 	}
 	void createTable(const string &name, int entrySize) {
 		if (!tableExisted(name)) {
