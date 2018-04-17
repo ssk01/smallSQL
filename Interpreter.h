@@ -172,16 +172,34 @@ public:
 			}
 		}*/
 	}
+	void dropIndex() {
+		// DROP INDEX index_name ON table_name
+		auto indexName = get("char");
+		assertNext("on");
+		auto tableName = get("char");
+		if (!end()) {
+			assertNext(";");
+		}
+		::dropIndex(tableName, indexName);
+	}
+	void dropTable() {
+		auto tableName = get("char");
+		if (!end()) {
+			assertNext(";");
+		}
+		::dropTable(tableName);
+	}
+
 	void run() {
-		try {
-			while (!end()) {
+		while (!end()) {
+			try {
 				if (peek("create")) {
 					if (peek("table")) {
 						createTable();
 					}
 					else if(peek("index")){
 						createIndex();
-					}
+					} 
 				} else if(peek("insert")){
 					insert();
 				}
@@ -191,15 +209,23 @@ public:
 				else if (peek("delete")) {
 					deleteRecord();
 				}
+				else if (peek("drop")) {
+					//DROP TABLE ±íÃû³Æ
+					if (peek("index")) {
+						dropIndex();
+					}
+					else if (peek("table")) {
+						dropTable();
+					}
+				}
 				else {
-					cout << "fuck" << endl;
+					cout << "fuck  " << peek() <<endl;
 					exit(0);
 				}
 			}
-		}
-		catch (std::runtime_error& e) {
-			cout << e.what() << endl;
-			return;
+			catch (std::runtime_error& e) {
+				cout << e.what() << endl;
+			}
 		}
 	}
 private:

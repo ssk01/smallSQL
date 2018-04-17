@@ -4,6 +4,6 @@ void show(Token t) {
 }
 ostream& operator<<(ostream& out, Token t)
 {
-	out << "type: " << t.type << "\tcontent: " << t.content;
+	out << "  type: " << t.type << "\tcontent: " << t.content;
 	return out;
 };

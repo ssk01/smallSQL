@@ -4,6 +4,31 @@
 #include "catalogData.h"
 using std::set;
 
+void dropIndex(const string& tableName, const string& indexName)
+{
+	CatalogManager::instance().assertExisted(tableName, indexName);
+	IndexManager::instance().dropIndex(tableName, indexName);
+	CatalogManager::instance().dropIndex(tableName, indexName);
+	//CatalogManager::instance().dropIndex(tableName, indexName);
+}
+void dropTable(const string& tableName) {
+	CatalogManager::instance().assertExisted(tableName);
+	RecordManager::instance().dropTable(tableName);
+	IndexManager::instance().dropIndex(tableName);
+	CatalogManager::instance().dropTable(tableName);
+}
+
+void addTable(const string& name, vector<Attribute>& attr) {
+	CatalogManager::instance().assertNotExisted(name);
+	CatalogManager::instance().addTable(name, attr);
+	RecordManager::instance().createTable(name, CatalogManager::instance().getEntrySize(name));
+}
+// add index prev added record;
+void addIndex(const string& tableName, const string& indexName, const string& attrName) {
+	CatalogManager::instance().assertExisted(tableName);
+	CatalogManager::instance().assertNotExisted(tableName, indexName);
+	CatalogManager::instance().addIndex(tableName, indexName, attrName);
+}
 pair<vector<char *>, vector<Record>> __selects(const string& tableName, const vector<Condition>& conds) {
 	CatalogManager::instance().assertExisted(tableName);
 	for (const auto &c : conds) {
@@ -59,19 +84,8 @@ void deleteRecords(const string& tableName, const vector<Condition>& conds) {
 	cout << "delete result:" << endl;
 
 }
-void addTable(const string& name, vector<Attribute>& attr) {
-	CatalogManager::instance().assertNotExisted(name);
-	CatalogManager::instance().addTable(name, attr);
-	RecordManager::instance().createTable(name, CatalogManager::instance().getEntrySize(name));
-}
 
 
-// add index prev added record;
-void addIndex(const string& tableName, const string& indexName, const string& attrName) {
-	CatalogManager::instance().assertExisted(tableName);
-	CatalogManager::instance().assertNotExisted(tableName, indexName);
-	CatalogManager::instance().addIndex(tableName, indexName, attrName);
-}
 
 
 void insertRecord(const string &name, const vector<Token>& content) {
@@ -84,7 +98,7 @@ void insertRecord(const string &name, const vector<Token>& content) {
 			auto indexName = CatalogManager::instance().getIndexName(name, i);
 			if (IndexManager::instance().indexRecordExisted(name, indexName, content[i])) {
 				//"fuck"
-				string res("tablename: " + name + "indexName +" + indexName + "  " + content[i].str()+ "algready existed");
+				string res("unique> tablename: " + name + " indexName +" + indexName + "  " + content[i].str()+ "already existed");
 				throw InsertError(res.c_str());
 			};
 		}
@@ -92,7 +106,7 @@ void insertRecord(const string &name, const vector<Token>& content) {
 			auto offset = CatalogManager::instance().attributeOffset(name, i);
 			if (RecordManager::instance().recordExist(name, content[i], i, offset)) {
 				//cout << "fuck"<<a
-				string res("tablename: " + name  + content[i].str() + "algready existed");
+				string res("unique> tablename: " + name  +" " +content[i].str() + "  already existed");
 				throw InsertError(res.c_str());
 			}
 		}

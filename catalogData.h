@@ -24,7 +24,10 @@ public:
 	{
 		nameTables[name] = { name, attr };
 	}
-
+	void dropTable(const string& name)
+	{
+		nameTables.erase(name);
+	}
 	string attributeType(const string& name, const string& attrName) {
 		return nameTables[name].attributeType(attrName);
 	}
@@ -66,6 +69,9 @@ public:
 	vector<tuple<int, bool>> getUniqueAttri(const string& name) {
 		return nameTables[name].getUniqueAttri();
 	}
+	void dropIndex(const string& name, const string& indexName) {
+		nameTables[name].dropIndex(indexName);
+	}
 	using aa = tuple<int, string, string>;
 	vector<aa> getIndexAttri(const string& name) {
 		return nameTables[name].getIndexAttri();
@@ -91,13 +97,13 @@ public:
 	}
 	void assertExisted(const string& name, const string& indexName) {
 		if (!existed(name, indexName)) {
-			string msg = "table: " + name + "'s +idnex: " + name + " existed ";
+			string msg = "table: " + name + "'s +index: " + name + "  not existed ";
 			throw TableError(msg.c_str());
 		}
 	}
 	void assertNotExisted(const string& name, const string& indexName) {
 		if (existed(name, indexName)) {
-			string msg = "table: "+ name+"'s +idnex: " + name + " existed ";
+			string msg = "table: "+ name+"'s +index: " + name + " already existed ";
 			throw TableError(msg.c_str());
 		}
 	}

@@ -72,8 +72,21 @@ class Indexs {
 	map<string, Index<string>> charIndex;
 	map<string, Index<float>> floatIndex;
 public:
-
+	void dropIndex(const string& indexName) {
+		if (intIndex.find(indexName) != intIndex.end()) {
+			intIndex.erase(indexName);
+		}
+		if (charIndex.find(indexName) != charIndex.end()) {
+			charIndex.erase(indexName);
+		}
+		if (floatIndex.find(indexName) != floatIndex.end()) {
+			floatIndex.erase(indexName);
+		}
+	}
 	Indexs() {};
+	~Indexs() {
+		cout << "index deconstruct" << endl;
+	};
 	bool indexRecordExisted(const string& indexName, const Token& content) {
 		if (content.type == "int") {
 			return intIndex[indexName].recordExisted(content.toInt());
@@ -138,7 +151,14 @@ public:
 		return im;
 	}
 	void addIndex(const string& name, const string& indexName, const string& attrName) {
+	
+	}
 
+	void dropIndex(const string& name, const string& indexName) {
+		nameIndexs[name].dropIndex(indexName);
+	}
+	void dropIndex(const string& name) {
+		nameIndexs.erase(name);
 	}
 	set<Record> select(const string& tableName, const Condition& c) {
 		if (c.indexName == "") {

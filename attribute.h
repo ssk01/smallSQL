@@ -100,6 +100,15 @@ public:
 		}
 		return false;
 	}
+	void dropIndex(const string& indexName) {
+		for (auto &a : attributes) {
+			if (a.indexName == indexName) {
+				//return true;
+				a.indexName = "";
+				return;
+			}
+		}
+	}
 	string getIndexName(int i) {
 		//assert(attributes[i].indexName != "");
 		return attributes[i].indexName;

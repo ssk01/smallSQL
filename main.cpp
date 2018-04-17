@@ -1,14 +1,4 @@
-#include "api.h"
-#include "token.h"
-#include "Tokenizer.h"
-#include "Interpreter.h"
-
-using namespace std;
-
-
-// todo  char '\0' insert
-//insert index interpreter
-//select 
+#include "test.h"
 void test1() {
 	Attribute a{ "age","int", 4 };
 	Attribute b{ "dollor","char", 6};
@@ -114,6 +104,7 @@ insert into person values(168.1, 18, "Person15", "000018", 331);
 
 
 )");
+
 	//delete from person where age = 331;
 
 	Interpreter s(input);
@@ -123,6 +114,38 @@ insert into person values(168.1, 18, "Person15", "000018", 331);
 	showIndex("person", "name1");
 }
 
+//	string input1(R"(
+//create table person(
+//	height float,
+//		pid int,
+//		name char(32),
+//		identity char(128),
+//		age int unique,
+//);
+//insert into person values(188.1, 18, "Person11", "000018", 35);
+//insert into person values(168.1, 18, "Person12", "000018", 32);
+//insert into person values(168.1, 18, "Person15", "000018", 32);
+//)");
+//	Interpreter s1(input1);
+//	s1.run();
+//	cout << "\n\n\n" << endl;
+//	showTableRecord("person");
+//	showIndex("person", "name1");
+//
+
+
 int main() {
-	test_deleteRecord();
+	//test_deleteRecord();
+	auto f = [](std::function<void()> fun) {
+		try {
+			fun();
+		}
+		catch (std::runtime_error& e) {
+			cout << e.what() << endl;
+		}
+	};
+	//f(test_unique1);
+	//f(test_unique2);
+	f(test_unique3);
+	f(test_unique4);
 }

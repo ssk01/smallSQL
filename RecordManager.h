@@ -19,6 +19,10 @@ public:
 	using Record = pair<int, int>;
 
 	RecordList(){}
+	~RecordList() {
+		cout << "recordlist deconstruct" << endl;
+	}
+
 	RecordList(string tableName, int size) : tableName(tableName), nextPos{ 0,0 }, entrySize(size){
 	}
 	vector<char *> showAllReocrd() {
@@ -89,14 +93,23 @@ public:
 			//todo it must be find
 			auto block = BufferManager::instance().find_or_alloc(tableName, entry.first);
 			memcpy(byteValue, block.rawPtr() + entry.second * entrySize, entrySize);
-	
 			if (content.type == "int") {
 				auto lhs = content.toInt();
-				//int Int(char *byteValue, int off) {
-					int rhs;
-					memcpy(&rhs, byteValue + offset, sizeof(rhs));
-				//}
-				//auto rhs = Int(byteValue, off);
+				auto rhs = Int(byteValue + offset);
+				if (lhs == rhs) {
+					return true;
+				}
+			}
+			else if (content.type == "float") {
+				auto lhs = content.toFloat();
+				auto rhs = Float(byteValue + offset);
+				if (lhs == rhs) {
+					return true;
+				}
+			}
+			else if (content.type == "char") {
+				auto lhs = content.toString();
+				auto rhs = string(byteValue + offset);
 				if (lhs == rhs) {
 					return true;
 				}
@@ -129,6 +142,7 @@ public:
 		memcpy(block.rawPtr() + entry.second * entrySize, content, entrySize);
 		return entry;
 	}
+
 private:
 	// blockindex and numRecord in block
 	
@@ -156,31 +170,22 @@ public:
 	}
 
 	void createTable(const string &name, int entrySize) {
-		if (!tableExisted(name)) {
-			tableInfos[name] = RecordList{ name, entrySize };
-		}
+		tableInfos[name] = RecordList{ name, entrySize };
+	}
+	void dropTable(const string &name) {
+			//tableInfos[name]
+		tableInfos.erase(name);
 	}
 	RecordList::Record insertRecord(const string &name, char *content) {
-		if (tableExisted(name)) {
-			return tableInfos[name].insertRecord(content);
-		}
+		return tableInfos[name].insertRecord(content);
 	}
 	vector<char *>  showReocrd(const string &name) {
-		if (tableExisted(name)) {
-			return tableInfos[name].showAllReocrd();
-		}
+		return tableInfos[name].showAllReocrd();
 	}
 	bool recordExist(const string &name, const Token& content, int i, int offset) {
-		if (tableExisted(name)) {
-			return tableInfos[name].recordExist(content, i, offset);
-		}
+		return tableInfos[name].recordExist(content, i, offset);
 	}
-	bool tableExisted(const string &name) {
-		if (tableInfos.find(name) == tableInfos.end()) {
-			return false;
-		}
-		return true;
-	}
+
 private:
 	RecordManager() {};
 	map<string, RecordList> tableInfos;
