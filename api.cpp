@@ -20,7 +20,7 @@ pair<vector<char *>, vector<Record>> __selects(const string& tableName, const ve
 			normalConditon.push_back(c);
 		}
 	});
-	vector<char *> ByteValues;
+	//vector<char *> ByteValues;
 	if (!indexesConditon.empty()) {
 		set<pair<int, int>> matched;
 		for (auto &c : indexesConditon) {
@@ -32,44 +32,26 @@ pair<vector<char *>, vector<Record>> __selects(const string& tableName, const ve
 	//no indexes;
 	else {
 		cout << "no indexes " << endl;
-		ByteValues = RecordManager::instance().select(tableName, conds);
-	}
-	cout << "select result:" << endl;
-	for (auto &value : ByteValues) {
-		CatalogManager::instance().showTableRecord(tableName, value);
+		return RecordManager::instance().select(tableName, conds);
 	}
 }
+
+void selects(const string& tableName, const vector<Condition>& conds) {
+	auto selected = __selects(tableName, conds);
+	auto byteValues = selected.first;
+	cout << "select result:" << endl;
+
+	for (auto v : byteValues) {
+		CatalogManager::instance().showTableRecord(tableName, v);
+	}
+
+}
 void deleteRecords(const string& tableName, const vector<Condition>& conds) {
-	CatalogManager::instance().assertExisted(tableName);
-	for (const auto &c : conds) {
-		c.init(tableName);
-	}
-	//indexes;
-	auto indexesConditon = vector<Condition>();
-	auto normalConditon = vector<Condition>();
-	std::for_each(conds.begin(), conds.end(), [&](const Condition & c) {
-		if (c.indexName != "") {
-			indexesConditon.push_back(c);
-		}
-		else {
-			normalConditon.push_back(c);
-		}
-	});
-	vector<char *> byteValues;
-
-	if (!indexesConditon.empty()) {
-		set<pair<int, int>> matched;
-		for (auto &c : indexesConditon) {
-			auto recs = IndexManager::instance().select(tableName, c);
-			matched.insert(recs.begin(), recs.end());
-		}
-		byteValues = RecordManager::instance().deleteRecords(tableName, { matched.begin(), matched.end() }, normalConditon);
-
-	}
-	//no indexes;
-	else {
-		cout << "no indexes " << endl;
-		byteValues = RecordManager::instance().deleteRecords(tableName, conds);
+	auto selected = __selects(tableName, conds);
+	auto byteValues = selected.first;
+	auto entrys = selected.second;
+	for (auto entry : entrys) {
+		RecordManager::instance().deleteRecord(tableName, entry);
 	}
 	for (auto v : byteValues) {
 		IndexManager::instance().deleteIndexReocrd(tableName, v);
