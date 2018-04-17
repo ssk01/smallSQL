@@ -93,7 +93,21 @@ insert into person values(168.1, 18, "Person15", "000018", 331);
 	//Interpreter(search)
 
 }
+class A {
+public:
+	A() { cout << "construct" << endl; }
+	~A() { cout << "delete" << endl; }
+};
 int main() {
 	//test1();
-	tokenizerTest();
+
+	//py  À©ÈÝ
+	//tokenizerTest();
+	map<int, A>b;
+	b[1] = A();
+	cout << " wtf " << endl;
+	b.erase(1);
+	cout << "end" << endl;
+	vector<int> v{ 0 ,1,2,3};
+	cout << v.capacity() << endl;
 }

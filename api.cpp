@@ -24,8 +24,8 @@ void selects(const string& tableName, const vector<Condition>& conds) {
 	if (!indexesConditon.empty()) {
 		set<pair<int, int>> matched;
 		for (auto &c : indexesConditon) {
-			auto tmp = IndexManager::instance().select(tableName, c);
-			matched.insert(tmp.begin(), tmp.end());
+			auto recs = IndexManager::instance().select(tableName, c);
+			matched.insert(recs.begin(), recs.end());
 		}
 		ByteValues = RecordManager::instance().select(tableName, { matched.begin(), matched.end() }, normalConditon);
 	}
@@ -39,7 +39,38 @@ void selects(const string& tableName, const vector<Condition>& conds) {
 		CatalogManager::instance().showTableRecord(tableName, value);
 	}
 }
+void deleteRecords(const string& tableName, const vector<Condition>& conds) {
+	CatalogManager::instance().assertExisted(tableName);
+	for (const auto &c : conds) {
+		c.init(tableName);
+	}
+	//indexes;
+	auto indexesConditon = vector<Condition>();
+	auto normalConditon = vector<Condition>();
+	std::for_each(conds.begin(), conds.end(), [&](const Condition & c) {
+		if (c.indexName != "") {
+			indexesConditon.push_back(c);
+		}
+		else {
+			normalConditon.push_back(c);
+		}
+	});
+	if (!indexesConditon.empty()) {
+		set<pair<int, int>> matched;
+		for (auto &c : indexesConditon) {
+			auto recs = IndexManager::instance().deleteRecords(tableName, c);
+			matched.insert(recs.begin(), recs.end());
+		}
+		 RecordManager::instance().deleteRecords(tableName, { matched.begin(), matched.end() }, normalConditon);
+	}
+	//no indexes;
+	else {
+		cout << "no indexes " << endl;
+		RecordManager::instance().select(tableName, conds);
+	}
+	cout << "select result:" << endl;
 
+}
 void addTable(const string& name, vector<Attribute>& attr) {
 	CatalogManager::instance().assertNotExisted(name);
 	CatalogManager::instance().addTable(name, attr);

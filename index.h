@@ -31,6 +31,19 @@ public:
 
 		return false;
 	}
+	set<Record> deleteRecords(const Condition& c, T condiValue) {
+		set<Record> res;
+		// map upper_bound
+		for (auto r = indexs.begin(); r != indexs.end(); r++) {
+			auto key = (*r).first;
+			if (Condition::eval(c.op, key, condiValue)) {
+				//continue;
+				res.insert(indexs[key]);
+				indexs.erase(key);
+			}
+		}
+		return res;
+	}
 	set<Record> select(const Condition& c, T condiValue) {
 		set<Record> res;
 		// map upper_bound
@@ -92,7 +105,17 @@ public:
 		if (floatIndex.find(indexName) != floatIndex.end()){
 			return floatIndex[indexName].select(c, c.token.toFloat());
 		}
-
+	}
+	set<Record> deleteRecords(const string& indexName, const Condition& c) {
+		if (intIndex.find(indexName) != intIndex.end()) {
+			return intIndex[indexName].deleteRecords(c, c.token.toInt());
+		}
+		if (charIndex.find(indexName) != charIndex.end()) {
+			return charIndex[indexName].deleteRecords(c, c.token.toString());
+		}
+		if (floatIndex.find(indexName) != floatIndex.end()) {
+			return floatIndex[indexName].deleteRecords(c, c.token.toFloat());
+		}
 	}
 };
 class IndexManager {
@@ -105,7 +128,6 @@ public:
 	void addIndex(const string& name, const string& indexName, const string& attrName) {
 
 	}
-
 	set<Record> select(const string& tableName, const Condition& c) {
 		if (c.indexName == "") {
 			string res = "tableName :" + tableName + c.str() + "is not index , in select index mode";
@@ -113,7 +135,13 @@ public:
 		}
 		return nameIndexs[tableName].select(c.indexName, c);
 	}
-
+	set<Record> deleteRecords(const string& tableName, const Condition& c) {
+		if (c.indexName == "") {
+			string res = "tableName :" + tableName + c.str() + "is not index , in select index mode";
+			throw IndexError(res.c_str());
+		}
+		return nameIndexs[tableName].select(c.indexName, c);
+	}
 	void showIndex(const string& tableName, const string& indexName) {
 		if (CatalogManager::instance().existed(tableName, indexName)) {
 			nameIndexs[tableName].showIndex(indexName);

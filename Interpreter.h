@@ -88,6 +88,34 @@ public:
 		//	cout << a << endl;
 		//}
 	}
+	void deleteRecord() {
+		//DELETE FROM Person WHERE LastName = 'Wilson'
+		assertNext("from");
+		auto tableName = get("char");
+		assertNext("where");
+		vector<Condition> conds;
+		while (!end()) {
+			auto attriName = get("char");
+			string opType("!=><");
+			string op = "";
+			while (opType.find(peek().type) != -1) {
+				op += get().content;
+			}
+			auto token = get();
+			conds.emplace_back(attriName, op, token);
+			if (end()) {
+				break;
+			}
+			else if (peek(";")) {
+				break;
+			}
+			else {
+				assertNext("and");
+			}
+		}
+		deleteRecords(tableName, conds);
+
+	}
 	void select() {
 	//type: char      content : select
 	//	type : *content : *
@@ -127,7 +155,7 @@ public:
 			cout << c << endl;
 		}*/
 		selects(tableName, conds);
-		showIndex(tableName, "name1");
+		//showIndex(tableName, "name1");
 		/*if (peek("!")) {
 			assertNext("=");
 			auto token = get();
@@ -166,7 +194,7 @@ public:
 				}
 			}
 		}
-		catch (runtime_error e) {
+		catch (std::runtime_error& e) {
 			cout << e.what() << endl;
 			return;
 		}

@@ -67,6 +67,44 @@ public:
 		}
 		return byteValues;
 	}
+	int deleteRecords(const vector<Record> &recs, const vector<Condition>& conds) {
+		int deletedNum = 0;
+		for (auto &entry : recs) {
+			//todo it must be find
+			auto block = BufferManager::instance().find_or_alloc(tableName, entry.first);
+			char *byteValue = block.rawPtr() + entry.second * entrySize;
+			int condTure = 0;
+			for (auto &c : conds) {
+				auto off = CatalogManager::instance().attributeOffset(tableName, c.i);
+				if (c.token.type == "int") {
+					auto val = Int(byteValue + off);
+					if (Condition::eval(c.op, val, c.token.toInt())) {
+						condTure += 1;
+					}
+					else {
+						break;
+					}
+				}
+				else if (c.token.type == "float") {
+					auto val = Float(byteValue + off);
+					if (Condition::eval(c.op, val, c.token.toFloat())) {
+						condTure += 1;
+					}
+					else {
+						break;
+					}
+				}
+			}
+			if (condTure == conds.size()) {
+				//put entry to freelist;
+				records.remove(entry);
+				free_records.push_back(entry);
+				deletedNum++;
+				//byteValues.push_back(byteValue);
+			}
+		}
+		return deletedNum;
+	}
 	vector<char *> select(const vector<Condition>& conds) {
 		return select({records.begin(), records.end()}, conds);
 	}
@@ -135,6 +173,10 @@ public:
 	vector<char *> select(const string& tableName,const vector<Record> & recs,const vector<Condition>& conds) {
 		return tableInfos[tableName].select(recs, conds);
 	}
+	int deleteRecords(const string& tableName, const vector<Record> & recs, const vector<Condition>& conds) {
+		return tableInfos[tableName].deleteRecords(recs, conds);
+	}
+	
 	void createTable(const string &name, int entrySize) {
 		if (!tableExisted(name)) {
 			tableInfos[name] = RecordList{ name, entrySize };

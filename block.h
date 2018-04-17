@@ -27,14 +27,15 @@ private:
 		
 	Block& alloc_block(const std::string& fileName, int blockIndex);
 	ListIter findBlock(const std::string& fileName, int blockIndex);
+	Block& lruReplaceBlock(const std::string& fileName, int blockIndex);
 };
 class Block {
 public:
 	//friend class Recordlist;
-
+	friend void readFile(Block* newBlock);
 	friend class BufferManager;
 	const static int BLOCKSIZE = 1024;
-	Block(string name, int index) : fileName(name), blockIndex(index), offset(0), _buffer(new char[BLOCKSIZE]) {
+	Block(string name, int index) : fileName(name), blockIndex(index), offset(0), _buffer(new char[BLOCKSIZE]), dirty(false) {
 		if (_buffer == nullptr) {
 			throw InsuffcientSpace("can not new a block any more");
 		}
@@ -42,9 +43,14 @@ public:
 	char *rawPtr() {
 		return _buffer;
 	}
+	~Block() {
+
+	}
 private:
 	char *_buffer;
 	string fileName;
 	int blockIndex;
 	int offset;
+	bool dirty;
 };
+
