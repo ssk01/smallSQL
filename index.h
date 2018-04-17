@@ -31,15 +31,21 @@ public:
 
 		return false;
 	}
+	void deleteIndexReocrd(T key) {
+		if (indexs.find(key) != indexs.end()) {
+			indexs.erase(key);
+			return;
+		}
+		//exit(0);
+		fck();
+	}
 	set<Record> deleteRecords(const Condition& c, T condiValue) {
 		set<Record> res;
-		// map upper_bound
 		for (auto r = indexs.begin(); r != indexs.end(); r++) {
 			auto key = (*r).first;
 			if (Condition::eval(c.op, key, condiValue)) {
 				//continue;
 				res.insert(indexs[key]);
-				indexs.erase(key);
 			}
 		}
 		return res;
@@ -61,6 +67,7 @@ private:
 	int i;
 };
 class Indexs {
+	string tableName;
 	map<string, Index<int>> intIndex;
 	map<string, Index<string>> charIndex;
 	map<string, Index<float>> floatIndex;
@@ -106,17 +113,22 @@ public:
 			return floatIndex[indexName].select(c, c.token.toFloat());
 		}
 	}
-	set<Record> deleteRecords(const string& indexName, const Condition& c) {
-		if (intIndex.find(indexName) != intIndex.end()) {
-			return intIndex[indexName].deleteRecords(c, c.token.toInt());
-		}
-		if (charIndex.find(indexName) != charIndex.end()) {
-			return charIndex[indexName].deleteRecords(c, c.token.toString());
-		}
-		if (floatIndex.find(indexName) != floatIndex.end()) {
-			return floatIndex[indexName].deleteRecords(c, c.token.toFloat());
-		}
+	void deleteIndexReocrd(const string& indexName, int value) {
+		intIndex[indexName].deleteIndexReocrd(value);
 	}
+	void deleteIndexReocrd(const string& indexName, float value) {
+		floatIndex[indexName].deleteIndexReocrd(value);
+	}
+	void deleteIndexReocrd(const string& indexName, string value) {
+		charIndex[indexName].deleteIndexReocrd(value);
+	}
+		/*	if (charIndex.find(indexName) != charIndex.end()) {
+				string value;
+			}
+			if (floatIndex.find(indexName) != floatIndex.end()) {
+				float value;
+			}*/
+
 };
 class IndexManager {
 public:
@@ -135,19 +147,32 @@ public:
 		}
 		return nameIndexs[tableName].select(c.indexName, c);
 	}
-	set<Record> deleteRecords(const string& tableName, const Condition& c) {
-		if (c.indexName == "") {
-			string res = "tableName :" + tableName + c.str() + "is not index , in select index mode";
-			throw IndexError(res.c_str());
-		}
-		return nameIndexs[tableName].select(c.indexName, c);
-	}
+
 	void showIndex(const string& tableName, const string& indexName) {
 		if (CatalogManager::instance().existed(tableName, indexName)) {
 			nameIndexs[tableName].showIndex(indexName);
 		}
 	}
-	
+	void deleteIndexReocrd(const string& tableName,  char *value) {
+		for (auto _index : CatalogManager::instance().getIndexAttri(tableName)) {
+			auto i = std::get<0>(_index);
+			auto indexName = std::get<1>(_index);
+			auto type = std::get<2>(_index);
+			auto offset = CatalogManager::instance().attributeOffset(tableName, i);
+			if (type == "int") {
+				int val = Int(value + offset);
+				nameIndexs[tableName].deleteIndexReocrd(indexName, val);
+			} 			
+			else if (type == "char") {
+				string val = string(value + offset);
+				nameIndexs[tableName].deleteIndexReocrd(indexName, val);
+			}
+			else if (type == "float") {
+				float val = Float(value + offset);
+				nameIndexs[tableName].deleteIndexReocrd(indexName, val);
+			}
+		}
+	}
 	bool indexRecordExisted(const string& tableName, const string& indexName, const Token& content) {
 		return nameIndexs[tableName].indexRecordExisted(indexName, content);
 	}

@@ -16,6 +16,7 @@ public:
 	int attributeOffset(const string& name, int i) {
 		return nameTables[name].attributeOffset(i);
 	}
+
 	int attributeOrder(const string& name, const string& attrName) {
 		return nameTables[name].attributeOrder(attrName);
 	}
@@ -53,6 +54,9 @@ public:
 	int getEntrySize(const string& name) {
 		return nameTables[name].size();
 	}
+	//pair<string, int> getIndexName(const string& name) {
+
+	//}
 	string getIndexName(const string& name, int i) {
 		return nameTables[name].getIndexName(i);
 	}

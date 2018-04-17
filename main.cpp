@@ -93,21 +93,36 @@ insert into person values(168.1, 18, "Person15", "000018", 331);
 	//Interpreter(search)
 
 }
-class A {
-public:
-	A() { cout << "construct" << endl; }
-	~A() { cout << "delete" << endl; }
-};
-int main() {
-	//test1();
 
-	//py  À©ÈÝ
-	//tokenizerTest();
-	map<int, A>b;
-	b[1] = A();
-	cout << " wtf " << endl;
-	b.erase(1);
-	cout << "end" << endl;
-	vector<int> v{ 0 ,1,2,3};
-	cout << v.capacity() << endl;
+void test_deleteRecord() {
+	string input(R"(
+create table person(
+	height float,
+		pid int,
+		name char(32),
+		identity char(128),
+		age int unique,
+);
+create index name1 on person(name);
+insert into person values(188.1, 18, "Person11", "000018", 35);
+insert into person values(168.1, 18, "Person12", "000018", 32);
+insert into person values(168.1, 18, "Person13", "000018", 33);
+insert into person values(168.1, 18, "Person14", "000018", 332);
+insert into person values(168.1, 18, "Person15", "000018", 331);
+	delete from person where age = 332;
+	delete from person where name = "Person15";
+
+
+)");
+	//delete from person where age = 331;
+
+	Interpreter s(input);
+	s.run();
+	cout << "\n\n\n" << endl;
+	showTableRecord("person");
+	showIndex("person", "name1");
+}
+
+int main() {
+	test_deleteRecord();
 }

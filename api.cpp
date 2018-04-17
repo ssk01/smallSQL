@@ -4,7 +4,7 @@
 #include "catalogData.h"
 using std::set;
 
-void selects(const string& tableName, const vector<Condition>& conds) {
+pair<vector<char *>, vector<Record>> __selects(const string& tableName, const vector<Condition>& conds) {
 	CatalogManager::instance().assertExisted(tableName);
 	for (const auto &c : conds) {
 		c.init(tableName);
@@ -27,7 +27,7 @@ void selects(const string& tableName, const vector<Condition>& conds) {
 			auto recs = IndexManager::instance().select(tableName, c);
 			matched.insert(recs.begin(), recs.end());
 		}
-		ByteValues = RecordManager::instance().select(tableName, { matched.begin(), matched.end() }, normalConditon);
+		return RecordManager::instance().select(tableName, { matched.begin(), matched.end() }, normalConditon);
 	}
 	//no indexes;
 	else {
@@ -55,20 +55,26 @@ void deleteRecords(const string& tableName, const vector<Condition>& conds) {
 			normalConditon.push_back(c);
 		}
 	});
+	vector<char *> byteValues;
+
 	if (!indexesConditon.empty()) {
 		set<pair<int, int>> matched;
 		for (auto &c : indexesConditon) {
-			auto recs = IndexManager::instance().deleteRecords(tableName, c);
+			auto recs = IndexManager::instance().select(tableName, c);
 			matched.insert(recs.begin(), recs.end());
 		}
-		 RecordManager::instance().deleteRecords(tableName, { matched.begin(), matched.end() }, normalConditon);
+		byteValues = RecordManager::instance().deleteRecords(tableName, { matched.begin(), matched.end() }, normalConditon);
+
 	}
 	//no indexes;
 	else {
 		cout << "no indexes " << endl;
-		RecordManager::instance().select(tableName, conds);
+		byteValues = RecordManager::instance().deleteRecords(tableName, conds);
 	}
-	cout << "select result:" << endl;
+	for (auto v : byteValues) {
+		IndexManager::instance().deleteIndexReocrd(tableName, v);
+	}
+	cout << "delete result:" << endl;
 
 }
 void addTable(const string& name, vector<Attribute>& attr) {
@@ -126,7 +132,7 @@ void showTableRecord(const string &name) {
 	CatalogManager::instance().assertExisted(name);
 
 	auto values = RecordManager::instance().showReocrd(name);
-	cout << "table :" + name << endl;
+	cout << "show  table record table :" + name << endl;
 	for (auto &value : values) {
 		CatalogManager::instance().showTableRecord(name, value);
 	}

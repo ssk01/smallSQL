@@ -188,6 +188,9 @@ public:
 				else if (peek("select")) {
 					select();
 				}
+				else if (peek("delete")) {
+					deleteRecord();
+				}
 				else {
 					cout << "fuck" << endl;
 					exit(0);

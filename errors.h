@@ -41,3 +41,5 @@ public:
 	{
 	}
 };
+
+#define fck() do {cout<<"fuck123"<<endl; exit(0);}while(0)
