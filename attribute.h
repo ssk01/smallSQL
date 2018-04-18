@@ -23,15 +23,20 @@ class Attribute {
 			<< a.indexName << " unique:\t" << a.unique;
 		return out;
 	};
+	
 public:
-	Attribute(string name, string type, int s = 0, bool u = false) :name(name), type(type), indexName(""), size(s), unique(u){
+	string str() {
+		std::ostringstream out;
+		out << *this;
+		return out.str();
+	}
+	Attribute(string name, string type, int i,int s = 0, bool u = false) :name(name), type(type), indexName(""), size(s), unique(u), i(i){
 		if (type == string("int")) {
 			size = 4;
 		}
 		else if (type == string("float")) {
 			size = 4;
 		} 
-		cout << type << (type == string("int")) << endl;
 	}
 	template<class T>
 	T val(const string& c, T tmp) {
@@ -44,6 +49,7 @@ public:
 		unique = true;
 		indexName = Name;
 	}
+	int i;
 	string name;
 	string type;
 	string indexName;
@@ -64,11 +70,8 @@ public:
 		}
 		for (size_t i = 0; i < content.size(); i++) {
 			if (content[i].type != attributes[i].type) {
-				std::ostringstream o;
-				o << content[i];
-				std::ostringstream o1;
-				o1 << content[i];
-				res = string("content: ") + o.str() + "\n attribute: " + o1.str();
+		
+				res = string("content: ") + content[i].str() + "\n attribute: " + attributes[i].str();
 				return false;
 			}
 		}
@@ -105,6 +108,7 @@ public:
 			if (a.indexName == indexName) {
 				//return true;
 				a.indexName = "";
+				a.unique = false;
 				return;
 			}
 		}

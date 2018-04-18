@@ -3,6 +3,7 @@
 #include "catalogData.h"
 #include "condition.h"
 #include <set>
+#include <assert.h>
 using std::set;
 using Record = pair<int, int>;
 using Records = vector<Record>;
@@ -135,12 +136,24 @@ public:
 	void deleteIndexReocrd(const string& indexName, string value) {
 		charIndex[indexName].deleteIndexReocrd(value);
 	}
-		/*	if (charIndex.find(indexName) != charIndex.end()) {
-				string value;
-			}
-			if (floatIndex.find(indexName) != floatIndex.end()) {
-				float value;
-			}*/
+	//void addIndex(const string& name, const string& indexName, const string& attrName, pair<vector<char *>, vector<Record>>& res) {
+	//	auto attribute = CatalogManager::instance().attribute(name, attrName);
+	//	auto offset = CatalogManager::instance().attributeOffset(name, attribute.i);
+	//	auto type = attribute.type;
+	//	auto bytevalues = res.first;
+	//	auto records = res.second;
+	//	assert(records.size() == bytevalues.size());
+	//	if (type == "int") {
+	//		for (size_t i = 0; i < records.size(); i++) {
+	//			auto value = bytevalues[i];
+	//			auto record = records[i];
+	//			auto key = Int(value + offset);
+	//			nameIndexs[name].insert
+
+	//		}
+
+	//	}
+	//}
 
 };
 class IndexManager {
@@ -150,8 +163,29 @@ public:
 		static IndexManager im;
 		return im;
 	}
-	void addIndex(const string& name, const string& indexName, const string& attrName) {
-	
+	void addIndex(const string& name, const string& indexName, const string& attrName, pair<vector<char *>, vector<Record>>& res) {
+		auto attribute = CatalogManager::instance().attribute(name, attrName);
+		auto offset = CatalogManager::instance().attributeOffset(name, attribute.i);
+		auto type = attribute.type;
+		auto bytevalues = res.first;
+		auto records = res.second;
+		assert(records.size() == bytevalues.size());
+		for (size_t i = 0; i < records.size(); i++) {
+			auto value = bytevalues[i];
+			auto record = records[i];
+			if (type == "int") {
+				int val = Int(value + offset);
+				nameIndexs[name].insertIndex(indexName, val ,record);
+			}
+			else if (type == "char") {
+				string val = string(value + offset);
+				nameIndexs[name].insertIndex(indexName, val, record);
+			}
+			else if (type == "float") {
+				float val = Float(value + offset);
+				nameIndexs[name].insertIndex(indexName, val, record);
+			}
+		}
 	}
 
 	void dropIndex(const string& name, const string& indexName) {
@@ -200,14 +234,14 @@ public:
 		//exist(name, indexName, key);
 		if (CatalogManager::instance().existed(tableName, indexName)) {
 			if (content.type == "int") {
-				istringstream in(content.content);
-				int key;
-				in >> key;
-				nameIndexs[tableName].insertIndex(indexName, key, record);
+			
+				nameIndexs[tableName].insertIndex(indexName, content.toInt(), record);
 			}
 			else if (content.type == "char") {
-				auto key = content.content;
-				nameIndexs[tableName].insertIndex(indexName, key, record);
+				nameIndexs[tableName].insertIndex(indexName, content.toString(), record);
+			}
+			else if (content.type == "float") {
+				nameIndexs[tableName].insertIndex(indexName, content.toFloat(), record);
 			}
 		}
 	}

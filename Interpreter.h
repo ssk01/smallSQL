@@ -46,18 +46,12 @@ public:
 			assertNext(";");
 		}
 		insertRecord(tableName, content);
-		//insertRecord(tableName, content);
-		//insertRecord(tableName, content);
-		//showTableRecord(tableName);
-		//showIndex(tableName, "idx_age");
-		/*for (auto &c : content) {
-			cout << c << endl;
-		}*/
 	}
 	void createTable() {
 		vector<Attribute> attrs;
 		auto tableName = get("char");
 		assertNext("(");
+		int idx = 0;
 		while (!peek(")")) {
 			auto name = get("char");
 			auto type = get("char");
@@ -72,8 +66,8 @@ public:
 				assertNext("unique");
 				ifunique = true;
 			}
-
-			attrs.emplace_back(name, type, size, ifunique);
+			attrs.emplace_back(name, type, idx,size, ifunique);
+			idx++;
 			//bug
 			if (peek(")")) {
 				break;
@@ -130,47 +124,37 @@ public:
 		assertNext("*");
 		assertNext("from");
 		auto tableName = get("char");
-		assertNext("where");
-		vector<Condition> conds;
-		while (!end()) {
-			auto attriName = get("char");
-			string opType("!=><");
-			string op = "";
-			while (opType.find(peek().type) != -1) {
-				op+=get().content;
-			}
-			auto token = get();
-			conds.emplace_back(attriName, op, token);
-			if (end()) {
-				break;
-			}
-			else if (peek(";")) {
-				break;
-			}
-			else {
-				assertNext("and");
-			}
+		if (!end() && peek(";")) {
+			selects(tableName, {});
 		}
-		/*for (const auto& c : conds){
-			cout << c << endl;
-		}*/
-		selects(tableName, conds);
-		//showIndex(tableName, "name1");
-		/*if (peek("!")) {
-			assertNext("=");
-			auto token = get();
-			conds.emplace_back(attriName, "!=", token);
+		else {
+			assertNext("where");
+			vector<Condition> conds;
+			while (!end()) {
+				auto attriName = get("char");
+				string opType("!=><");
+				string op = "";
+				while (opType.find(peek().type) != -1) {
+					op+=get().content;
+				}
+				auto token = get();
+				conds.emplace_back(attriName, op, token);
+				if (end()) {
+					break;
+				}
+				else if (peek(";")) {
+					break;
+				}
+				else {
+					assertNext("and");
+				}
+			}
+			/*for (const auto& c : conds){
+				cout << c << endl;
+			}*/
+			selects(tableName, conds);
+
 		}
-		else if (peek(">")) {
-			if (peek("=")) {
-				auto token = get();
-				conds.emplace_back(attriName, ">=", token);
-			}
-			else {
-				auto token = get();
-				conds.emplace_back(attriName, ">=", token);
-			}
-		}*/
 	}
 	void dropIndex() {
 		// DROP INDEX index_name ON table_name
@@ -189,7 +173,11 @@ public:
 		}
 		::dropTable(tableName);
 	}
-
+	void run(const string &input) {
+		tokens = Tokenizer(input).generate();
+		i = 0;
+		run();
+	}
 	void run() {
 		while (!end()) {
 			try {

@@ -23,13 +23,7 @@ void addTable(const string& name, vector<Attribute>& attr) {
 	CatalogManager::instance().addTable(name, attr);
 	RecordManager::instance().createTable(name, CatalogManager::instance().getEntrySize(name));
 }
-// add index prev added record;
-void addIndex(const string& tableName, const string& indexName, const string& attrName) {
-	CatalogManager::instance().assertExisted(tableName);
-	CatalogManager::instance().assertNotExisted(tableName, indexName);
-	CatalogManager::instance().addIndex(tableName, indexName, attrName);
-}
-pair<vector<char *>, vector<Record>> __selects(const string& tableName, const vector<Condition>& conds) {
+static pair<vector<char *>, vector<Record>> __selects(const string& tableName, const vector<Condition>& conds) {
 	CatalogManager::instance().assertExisted(tableName);
 	for (const auto &c : conds) {
 		c.init(tableName);
@@ -59,6 +53,15 @@ pair<vector<char *>, vector<Record>> __selects(const string& tableName, const ve
 		cout << "no indexes " << endl;
 		return RecordManager::instance().select(tableName, conds);
 	}
+}
+// add index prev added record;
+void addIndex(const string& tableName, const string& indexName, const string& attrName) {
+	CatalogManager::instance().assertExisted(tableName);
+	CatalogManager::instance().assertNotExisted(tableName, indexName);
+	CatalogManager::instance().addIndex(tableName, indexName, attrName);
+	//assert it must be unique on attrName;
+	IndexManager::instance().addIndex(tableName, indexName, attrName, __selects(tableName, {}));
+
 }
 
 void selects(const string& tableName, const vector<Condition>& conds) {

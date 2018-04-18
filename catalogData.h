@@ -20,6 +20,11 @@ public:
 	int attributeOrder(const string& name, const string& attrName) {
 		return nameTables[name].attributeOrder(attrName);
 	}
+	const Attribute& attribute(const string& name, const string& attrName) {
+		return nameTables[name].attribute(attrName);
+		
+	}
+
 	void addTable(const string& name, vector<Attribute>& attr) 
 	{
 		nameTables[name] = { name, attr };
@@ -31,11 +36,6 @@ public:
 	string attributeType(const string& name, const string& attrName) {
 		return nameTables[name].attributeType(attrName);
 	}
-	const Attribute& attribute(const string& name, const string& attrName) {
-		return nameTables[name].attribute(attrName);
-		
-	}
-
 	void showTableRecord(const string& name, char *value) {
 		//cout <<"ttt" << *(int*)value << endl;
 		cout << "Table: " + name << endl;
@@ -44,7 +44,7 @@ public:
 
 	void addIndex(const string& name, const string& indexName, const string& attrName) {
 		if (!nameTables[name].addIndex(indexName, attrName)) {
-			string res = "tablename: " + name + "no  attrName: " + attrName + "for indexName: " + indexName;
+			string res = "tablename: " + name + "no  addIndexattrName: " + attrName + "for indexName: " + indexName;
 			throw IndexError(res.c_str());
 		}
 	}
