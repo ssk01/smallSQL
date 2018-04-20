@@ -3,6 +3,7 @@
 #include "index.h"
 #include <tuple>
 #include "condition.h"
+void __load();
 void addTable(const string& name, vector<Attribute>& attr);
 void insertRecord(const string &name, const vector<Token>& content);
 void showTableRecord(const string &name);

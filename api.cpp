@@ -3,7 +3,11 @@
 #include <set>
 #include "catalogData.h"
 using std::set;
-
+void __load() {
+	for (auto &name : CatalogManager::instance().name()) {
+		RecordManager::instance().createTable(name, CatalogManager::instance().getEntrySize(name));
+	}
+}
 void dropIndex(const string& tableName, const string& indexName)
 {
 	CatalogManager::instance().assertExisted(tableName, indexName);

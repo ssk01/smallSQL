@@ -1,6 +1,7 @@
 #include "test.h"
 
-//todo add index pre records;
+//todo add index pre records ;
+//what if no add.
 // input
 //index  unique feature;
 int main() {
@@ -13,8 +14,19 @@ int main() {
 			cout << e.what() << endl;
 		}
 	};
-	test(index2);
-
+	test(serializer);
+	/*string a("bbb");
+	string a1("bbc");
+	string a12("bbc");
+	std::fstream in{ string("tableInfo/") + "3" + ".txt",std::ios::trunc|std::ios::in|std::ios::out };
+	in << a;
+	in << a1;
+	in.seekp(0);
+	string b;
+	string b1;
+	in >> b;
+	in >> b1;
+	cout << b  << "¡¡¡¡¡¡" << b1;*/
 
 
 //test unique

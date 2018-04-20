@@ -13,6 +13,13 @@ public:
 		static CatalogManager cm;
 		return cm;
 	}
+	vector<string> name() {
+		vector<string> names;
+		for (auto &kv : nameTables) {
+			names.emplace_back(kv.first);
+		}
+		return names;
+	}
 	int attributeOffset(const string& name, int i) {
 		return nameTables[name].attributeOffset(i);
 	}
@@ -118,8 +125,45 @@ public:
 	}
 private:
 
-
+	~CatalogManager() {
+		cout << "deconstruct catalog" << endl;
+		save();
+	}
 	CatalogManager() {
+		load();
+	}
+	void save() {
+		std::ofstream out{ string("catalogData/") + "tablename.txt" };
+		out << nameTables.size() << endl;
+		for (auto value : nameTables) {
+			out << value.first << "\n";
+			cout << value.first << endl;
+			value.second.save();
+		}
+	}
+	void load() {
+		std::ifstream in{ string("catalogData/") + "tablename.txt" };
+		if (in.is_open()) {
+			size_t size;
+			in >> size;
+			string tableName;
+			while (size--> 0) {
+				in >> tableName;
+				auto table = Table::load(tableName);
+				nameTables[tableName] = table;
+
+				cout << table.attributes.size();
+			}
+			cout << "after load " << endl;
+			for (auto value : nameTables) {
+				cout << value.first << "\n";
+				cout << value.second << endl;
+			}
+		}
+		else {
+			cout << "not open catalogData" << endl;
+		}
+
 	}
 	map<string, Table> nameTables;
 	//map<string, set<string>> intIndex;

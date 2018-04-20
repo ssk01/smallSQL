@@ -1,6 +1,19 @@
 #include "test.h"
 using namespace std;
-
+void serializer() {
+	string input(R"(
+create table person(
+	height float,
+		pid int,
+		name char(32),
+		identity char(128),
+		age int unique,
+);)");
+	Interpreter s(input);
+	s.run();
+	s.run(R"(insert into person values(188.1, 18, "Person11", "000018", 35);
+select * from person;)");
+}
 void index2() {
 	string input(R"(
 create table person(

@@ -13,7 +13,7 @@ public:
 		//	cout << a << endl;
 		//}
 		cout << "kidding me" << endl;
-
+		__load();
 	}
 	void createIndex() {
 	//	create index idx_age on person(age);

@@ -4,6 +4,7 @@
 #include <vector>
 #include <sstream>
 #include <ostream>
+#include <fstream>
 #include <tuple>
 #include "token.h"
 #include "util.h"
@@ -30,13 +31,44 @@ public:
 		out << *this;
 		return out.str();
 	}
-	Attribute(string name, string type, int i,int s = 0, bool u = false) :name(name), type(type), indexName(""), size(s), unique(u), i(i){
+	Attribute(){
+	}
+	Attribute(string name, string type, int i,int s = 0, bool u = false, string indexName="") :name(name), type(type), indexName(indexName), size(s), unique(u), i(i){
 		if (type == string("int")) {
 			size = 4;
 		}
 		else if (type == string("float")) {
 			size = 4;
 		} 
+	}
+	void serialize(std::ofstream &out) {
+		out << name;
+		out << " ";
+		out << type;
+		out << " ";
+		out << i;
+		out << " ";
+		out << size;
+		out << " ";
+		out << unique;
+		out << " ";
+		out << indexName;
+		out << " :";
+		out << "\n";
+	}
+	Attribute(std::ifstream &in) {
+		in >> name;
+		in >> type;
+		in >> i;
+		in >> size;
+		in >> unique;
+		in >> indexName;
+		if (indexName == ":") {
+			indexName = "";
+		}
+		else {
+			in >> string("");
+		}
 	}
 	template<class T>
 	T val(const string& c, T tmp) {
@@ -62,7 +94,44 @@ class Table {
 public:
 	Table(const string& name, vector<Attribute>& attr) : tablename(name), attributes(attr) {
 	}
+	friend ostream& operator<<(ostream& out, Table t) {
+		out << "tablename " << t.tablename;
+		for (auto &a : t.attributes) {
+			out << a << endl;
+		}
+		return out;
+	}
 	Table(){}
+	static Table load(const string& name) {
+		std::ifstream in{ string("tableInfo/") + name + ".txt" };
+		in.seekg(0, std::ios::beg);
+		string _tableName;
+		in >> _tableName;
+		assert(_tableName == name);
+		int attrSize;
+		in >> attrSize;
+		vector<Attribute> attr;
+		for (int i = 0; i < attrSize; i++) {
+			attr.emplace_back(in);
+		}
+		return Table{ name, attr };
+	}
+	void save() {
+		std::ofstream out{ string("tableInfo/")+ tablename+".txt" };
+		out.seekp(0, std::ios::beg);
+		out << tablename << "\n";
+		out << attributes.size() << "\n";
+		for (auto &a : attributes) {
+			a.serialize(out);
+		}
+
+		/*int i;
+		string name;
+		string type;
+		string indexName;
+		bool unique;
+		int size;*/
+	}
 	//todo can be do init
 	bool typeEqual(const vector<Token>& content, string& res) {
 		if (content.size() != attributes.size()) {
