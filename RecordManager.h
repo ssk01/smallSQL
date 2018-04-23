@@ -22,8 +22,52 @@ public:
 	~RecordList() {
 		cout << "recordlist deconstruct" << endl;
 	}
-
+	void load(const string& name) {
+		std::ifstream in{ string("recordlist/") + name + ".txt" };
+		assert(name == tableName);
+		in >> tableName;
+		in >> entrySize;
+		in >> nextPos.first;
+		in >> nextPos.second;
+		size_t size;
+		in >> size;
+		//records.resize(size);
+		for (size_t i = 0; i < size; i++) {
+			Record r;
+			in >> r.first;
+			in >> r.second;
+			records.emplace_back(r);
+		}
+		in >> size;
+		for (size_t i = 0; i < size; i++) {
+			Record r;
+			in >> r.first;
+			in >> r.second;
+			free_records.emplace_back(r);
+		}
+	}
+	void save() {
+		std::ofstream out{ string("recordlist/") + tableName + ".txt" };
+		out << tableName << " ";
+		out << entrySize << " ";
+		out << nextPos.first << " ";
+		out << nextPos.second << "\n";
+		out << records.size() << "\n";
+		for (auto r : records) {
+			out << r.first << " ";
+			out << r.second << "\n";
+		}
+		out << free_records.size() << "\n";
+		for (auto r : free_records) {
+			out << r.first << " ";
+			out << r.second << "\n";
+		}
+	}
 	RecordList(string tableName, int size) : tableName(tableName), nextPos{ 0,0 }, entrySize(size){
+	}
+	RecordList(const string &tablename) : tableName(tablename) {
+
+		load(tableName);
 	}
 	vector<char *> showAllReocrd() {
 		vector<char *> res;
@@ -185,9 +229,34 @@ public:
 	bool recordExist(const string &name, const Token& content, int i, int offset) {
 		return tableInfos[name].recordExist(content, i, offset);
 	}
-
+	~RecordManager() {
+		save();
+	};
 private:
-	RecordManager() {};
+	void load() {
+		std::ifstream in{ string("catalogData/") + "tablename.txt" };
+		if (in.is_open()) {
+			size_t size;
+			in >> size;
+			string tableName;
+			while (size--> 0) {
+				in >> tableName;
+				tableInfos[tableName] = { tableName };
+			}
+			cout << "after load " << endl;
+		}
+		else {
+			cout << "not open catalogData" << endl;
+		}
+	}
+	void save() {
+		for (auto kv : tableInfos) {
+			kv.second.save();
+		}
+	}
+	RecordManager() { 
+		load(); 
+	};
 	map<string, RecordList> tableInfos;
 
 };

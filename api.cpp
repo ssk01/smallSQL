@@ -4,9 +4,9 @@
 #include "catalogData.h"
 using std::set;
 void __load() {
-	for (auto &name : CatalogManager::instance().name()) {
-		RecordManager::instance().createTable(name, CatalogManager::instance().getEntrySize(name));
-	}
+	//for (auto &name : CatalogManager::instance().name()) {
+	//	RecordManager::instance().createTable(name, CatalogManager::instance().getEntrySize(name));
+	//}
 }
 void dropIndex(const string& tableName, const string& indexName)
 {
@@ -110,12 +110,15 @@ void insertRecord(const string &name, const vector<Token>& content) {
 			};
 		}
 		else {
+			cout << "fuck you " << endl;
 			auto offset = CatalogManager::instance().attributeOffset(name, i);
 			if (RecordManager::instance().recordExist(name, content[i], i, offset)) {
-				//cout << "fuck"<<a
+				cout << "fuck" << endl;
 				string res("unique> tablename: " + name  +" " +content[i].str() + "  already existed");
 				throw InsertError(res.c_str());
 			}
+			cout << "fuck you " << endl;
+
 		}
 	}
 	auto value = CatalogManager::instance().toEntry(name, content);

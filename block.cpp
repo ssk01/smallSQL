@@ -18,12 +18,26 @@ Block& BufferManager::find_or_alloc(const std::string& fileName, int blockIndex)
 
 	return alloc_block(fileName, blockIndex);
 }
+void BufferManager::save() {
+	for (auto b : blocks) {
+		b->save();
+		delete b;
+	}
+}
+void readFile(Block* block) {
+	std::ifstream in{ string("data/") + block->fileName + std::to_string(block->blockIndex) + ".txt" };
+	if (in.is_open()) {
+		in.read(block->_buffer, Block::BLOCKSIZE);
+	}
+}
+
 Block& BufferManager::alloc_block(const std::string& fileName, int blockIndex)
 {
 	
 	if (blocks.size() < BlockCount) {
 		auto newBlock = new Block(fileName, blockIndex);
 		//readFile(newBlock);
+		readFile(newBlock);
 		blocks.push_front(newBlock);
 		return *newBlock;
 	} else {

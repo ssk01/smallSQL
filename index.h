@@ -11,7 +11,36 @@ using Records = vector<Record>;
 template<class T>
 class Index {
 public:
+	/*Index(const string& tableName):tableName(tableName) {}*/
 	Index() {}
+	Index(const string& tableName, const string& indexName)  {
+		//load(tableName, indexName);
+	}
+	void load(const string& tableName, const string& indexName) {
+		std::ifstream in{ string("indexes/") + tableName + "_" + indexName ".txt" };
+		if (!in.is_open()) {
+			fck();
+		}
+		size_t size = 0;
+		in >> size;
+		while (size--) {
+			T key;
+			Record rec;
+			in >> key;
+			in >> res.first;
+			in >> res.second;
+			indexs[key] = rec;
+		}
+	}
+	//tableName
+	void save(const string& tableName, const string& indexName) {
+		std::ofstream out{ string("indexes/") + tableName +"_"+indexName + ".txt" };
+		out << indexs.size() << "\n";
+		for (auto &kv : indexs) {
+			out << kv.first << "\n";
+			out << kv.second.first << " " << kv.second.second << "\n";
+		}
+	}
 	void insertIndex(T key, RecordList::Record record) {
 		//assert();
 		indexs[key] = record;
@@ -65,7 +94,9 @@ public:
 	}
 private:
 	map<T, RecordList::Record> indexs;
-	int i;
+	string tableName;
+	string indexName;
+	//int i;
 };
 class Indexs {
 	string tableName;
@@ -85,6 +116,63 @@ public:
 		}
 	}
 	Indexs() {};
+	//Indexs(const string& tablName): {};
+	void save() {
+		std::ofstream out{ string("indexes/") + tableName + ".txt" };
+		//in <<
+		out << tableName << "\n";
+		out << intIndex.size() << "\n";
+		out << charIndex.size() << "\n";
+		out << floatIndex.size() << "\n";
+		for (auto &kv : intIndex) {
+			out << kv.first << "\n";
+			kv.second.save(tableName, kv.first);
+		}
+		for (auto &kv : charIndex) {
+			out << kv.first << "\n";
+			kv.second.save(tableName, kv.first);
+		}		
+		for (auto &kv : floatIndex) {
+			out << kv.first << "\n";
+			kv.second.save(tableName, kv.first);
+		}
+	}
+	void load() {
+		std::ifstream in{ string("indexesInfo/") + tableName + ".txt" };
+		if (in.is_open()) {
+			string name;
+			in >> name;
+			assert(name == tableName);
+			int intIndexSize;
+			int charIndexSize;
+			int floatIndexSize;
+			in >> intIndexSize;
+			in >> charIndexSize;
+			in >> floatIndexSize;
+			while (intIndexSize--) {
+				string indexName;
+				in >> indexName;
+				intIndex[indexName] = { tableName, indexName };
+			}
+			while (charIndexSize--) {
+				string indexName;
+				in >> indexName;
+				charIndex[indexName] = { tableName, indexName };
+			}
+			while (floatIndexSize--) {
+				string indexName;
+				in >> indexName;
+				floatIndex[indexName] = { tableName, indexName };
+			}
+		}
+		else {
+			cout << "first time, not load table: " + tableName << endl;
+		}
+	}
+	Indexs(const string& tableName):tableName(tableName) {
+		//load();
+	};
+
 	~Indexs() {
 		cout << "index deconstruct" << endl;
 	};
@@ -98,6 +186,10 @@ public:
 		if (content.type == "float") {
 			return floatIndex[indexName].recordExisted(content.toFloat());
 		}
+	}
+	void insertIndex(const string& indexName, float key, RecordList::Record record) {
+		//assert();
+		floatIndex[indexName].insertIndex(key, record);
 	}
 	void insertIndex(const string& indexName, int key, RecordList::Record record) {
 		//assert();
@@ -136,25 +228,6 @@ public:
 	void deleteIndexReocrd(const string& indexName, string value) {
 		charIndex[indexName].deleteIndexReocrd(value);
 	}
-	//void addIndex(const string& name, const string& indexName, const string& attrName, pair<vector<char *>, vector<Record>>& res) {
-	//	auto attribute = CatalogManager::instance().attribute(name, attrName);
-	//	auto offset = CatalogManager::instance().attributeOffset(name, attribute.i);
-	//	auto type = attribute.type;
-	//	auto bytevalues = res.first;
-	//	auto records = res.second;
-	//	assert(records.size() == bytevalues.size());
-	//	if (type == "int") {
-	//		for (size_t i = 0; i < records.size(); i++) {
-	//			auto value = bytevalues[i];
-	//			auto record = records[i];
-	//			auto key = Int(value + offset);
-	//			nameIndexs[name].insert
-
-	//		}
-
-	//	}
-	//}
-
 };
 class IndexManager {
 public:
@@ -163,6 +236,28 @@ public:
 		static IndexManager im;
 		return im;
 	}
+	void save() {
+		for (auto &kv : nameIndexs) {
+			kv.second.save();
+		}
+	}
+	void load() {
+		std::ifstream in{ string("catalogData/") + "tablename.txt" };
+		if (in.is_open()) {
+			size_t size;
+			in >> size;
+			string tableName;
+			while (size--> 0) {
+				in >> tableName;
+				nameIndexs[tableName] = { tableName };
+			}
+			cout << "after load " << endl;
+		}
+		else {
+			cout << "not open catalogData" << endl;
+		}
+	}
+	// add index prev added record;
 	void addIndex(const string& name, const string& indexName, const string& attrName, pair<vector<char *>, vector<Record>>& res) {
 		auto attribute = CatalogManager::instance().attribute(name, attrName);
 		auto offset = CatalogManager::instance().attributeOffset(name, attribute.i);
@@ -170,6 +265,7 @@ public:
 		auto bytevalues = res.first;
 		auto records = res.second;
 		assert(records.size() == bytevalues.size());
+		nameIndexs[name] = { name };
 		for (size_t i = 0; i < records.size(); i++) {
 			auto value = bytevalues[i];
 			auto record = records[i];
@@ -187,7 +283,6 @@ public:
 			}
 		}
 	}
-
 	void dropIndex(const string& name, const string& indexName) {
 		nameIndexs[name].dropIndex(indexName);
 	}

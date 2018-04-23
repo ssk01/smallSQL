@@ -14,6 +14,8 @@ public:
 		//}
 		cout << "kidding me" << endl;
 		__load();
+		cout << "after load" << endl;
+		//showTableRecord("person");
 	}
 	void createIndex() {
 	//	create index idx_age on person(age);

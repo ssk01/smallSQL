@@ -8,11 +8,16 @@ create table person(
 		name char(32),
 		identity char(128),
 		age int unique,
-);)");
+);
+insert into person values(188.1, 18, "Person11", "000018", 32);
+insert into person values(188.1, 18, "Person11", "000018", 1);
+)");
 	Interpreter s(input);
 	s.run();
-	s.run(R"(insert into person values(188.1, 18, "Person11", "000018", 35);
-select * from person;)");
+	showTableRecord("person");
+//	s.run(R"(insert into person values(188.1, 18, "Person11", "000018", 35);
+//)");
+	//select * from person;
 }
 void index2() {
 	string input(R"(
