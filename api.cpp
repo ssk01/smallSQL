@@ -17,9 +17,10 @@ void dropIndex(const string& tableName, const string& indexName)
 }
 void dropTable(const string& tableName) {
 	CatalogManager::instance().assertExisted(tableName);
-	RecordManager::instance().dropTable(tableName);
-	IndexManager::instance().dropIndex(tableName);
+	auto blockIndexs = RecordManager::instance().dropTable(tableName);
+	//IndexManager::instance().dropIndex(tableName);
 	CatalogManager::instance().dropTable(tableName);
+	BufferManager::instance().dropTable(tableName, blockIndexs);
 }
 
 void addTable(const string& name, vector<Attribute>& attr) {
@@ -110,14 +111,12 @@ void insertRecord(const string &name, const vector<Token>& content) {
 			};
 		}
 		else {
-			cout << "fuck you " << endl;
 			auto offset = CatalogManager::instance().attributeOffset(name, i);
 			if (RecordManager::instance().recordExist(name, content[i], i, offset)) {
 				cout << "fuck" << endl;
 				string res("unique> tablename: " + name  +" " +content[i].str() + "  already existed");
 				throw InsertError(res.c_str());
 			}
-			cout << "fuck you " << endl;
 
 		}
 	}

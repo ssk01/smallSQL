@@ -8,6 +8,8 @@
 #include "util.h"
 #include "condition.h"
 #include "catalogData.h"
+#include "log.h"
+
 using std::pair;
 using std::list;
 using std::vector;
@@ -15,44 +17,54 @@ using std::map;
 using std::set;
 using Record = pair<int, int>;
 class RecordList {
+
 public:
 	using Record = pair<int, int>;
-
 	RecordList(){}
 	~RecordList() {
-		cout << "recordlist deconstruct" << endl;
+		LOG("recordlist deconstruct");
 	}
-	void load(const string& name) {
-		std::ifstream in{ string("recordlist/") + name + ".txt" };
-		assert(name == tableName);
-		in >> tableName;
-		in >> entrySize;
-		in >> nextPos.first;
-		in >> nextPos.second;
-		size_t size;
-		in >> size;
-		//records.resize(size);
-		for (size_t i = 0; i < size; i++) {
-			Record r;
-			in >> r.first;
-			in >> r.second;
-			records.emplace_back(r);
+	void load() {
+		std::ifstream in{ recordlistDir + tableName + ".txt" };
+		//assert(name == tableName);
+		if (in.is_open()) {
+			LOG("recordlist load ");
+			in >> tableName;
+			in >> entrySize;
+			in >> nextPos.first;
+			in >> nextPos.second;
+			size_t size;
+			in >> size;
+			LOG("load record size", size);
+			//records.resize(size);
+			for (size_t i = 0; i < size; i++) {
+				Record r;
+				in >> r.first;
+				in >> r.second;
+				records.emplace_back(r);
+			}
+			in >> size;
+			for (size_t i = 0; i < size; i++) {
+				Record r;
+				in >> r.first;
+				in >> r.second;
+				free_records.emplace_back(r);
+			}
 		}
-		in >> size;
-		for (size_t i = 0; i < size; i++) {
-			Record r;
-			in >> r.first;
-			in >> r.second;
-			free_records.emplace_back(r);
+		else {
+			LOG("recordlist error ");
+			exit(1);
 		}
+
 	}
 	void save() {
-		std::ofstream out{ string("recordlist/") + tableName + ".txt" };
+		std::ofstream out{ recordlistDir + tableName + ".txt", std::ios::trunc };
 		out << tableName << " ";
 		out << entrySize << " ";
 		out << nextPos.first << " ";
 		out << nextPos.second << "\n";
 		out << records.size() << "\n";
+		LOG("save record size", records.size());
 		for (auto r : records) {
 			out << r.first << " ";
 			out << r.second << "\n";
@@ -63,11 +75,21 @@ public:
 			out << r.second << "\n";
 		}
 	}
+	set<int> drop() {
+		std::remove((recordlistDir + tableName + ".txt").c_str());
+		set<int> blockIndexs;
+		for (auto r : records) {
+			blockIndexs.emplace(r.first);
+		}
+		for (auto r : free_records) {
+			blockIndexs.emplace(r.first);
+		}
+		return blockIndexs;
+	}
 	RecordList(string tableName, int size) : tableName(tableName), nextPos{ 0,0 }, entrySize(size){
 	}
 	RecordList(const string &tablename) : tableName(tablename) {
-
-		load(tableName);
+		load();
 	}
 	vector<char *> showAllReocrd() {
 		vector<char *> res;
@@ -216,9 +238,10 @@ public:
 	void createTable(const string &name, int entrySize) {
 		tableInfos[name] = RecordList{ name, entrySize };
 	}
-	void dropTable(const string &name) {
-			//tableInfos[name]
+	set<int> dropTable(const string &name) {
+		auto blockIndexs = tableInfos[name].drop();
 		tableInfos.erase(name);
+		return blockIndexs;
 	}
 	RecordList::Record insertRecord(const string &name, char *content) {
 		return tableInfos[name].insertRecord(content);
@@ -234,7 +257,7 @@ public:
 	};
 private:
 	void load() {
-		std::ifstream in{ string("catalogData/") + "tablename.txt" };
+		std::ifstream in{ catalogDataDir + "tablename.txt" };
 		if (in.is_open()) {
 			size_t size;
 			in >> size;
@@ -243,10 +266,10 @@ private:
 				in >> tableName;
 				tableInfos[tableName] = { tableName };
 			}
-			cout << "after load " << endl;
+			LOG("load RecordManager success");
 		}
 		else {
-			cout << "not open catalogData" << endl;
+			LOG("load RecordManager: empty");
 		}
 	}
 	void save() {

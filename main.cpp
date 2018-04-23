@@ -14,7 +14,15 @@ int main() {
 			cout << e.what() << endl;
 		}
 	};
-	test(serializer);
+	//test(test_unique1);
+	try {
+	dropTable("person");
+		//cout <<"remove "<<(dataDir + "person"+ "_" + std::to_string(0) + ".txt").c_str();
+	//showTableRecord("person");
+	}
+	catch (std::runtime_error& e) {
+		cout << e.what() << endl;
+	}
 	/*string a("bbb");
 	string a1("bbc");
 	string a12("bbc");

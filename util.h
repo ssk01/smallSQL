@@ -13,3 +13,7 @@ float Float(char *value);
 //	}
 //};
 
+extern const  std::string recordlistDir;
+extern const  std::string catalogDataDir;
+extern const  std::string tableInfoDir;
+extern const  std::string dataDir;

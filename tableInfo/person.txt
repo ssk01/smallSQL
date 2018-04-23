@@ -1,7 +1,0 @@
-person
-5
-height float 0 4 0  :
-pid int 1 4 0  :
-name char 2 32 0  :
-identity char 3 128 0  :
-age int 4 4 1  :

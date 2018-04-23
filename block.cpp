@@ -1,11 +1,12 @@
 #include "block.h"
 #include <algorithm>
 #include "log.h"
+#include "util.h"
 using namespace std;
 
 Block& BufferManager::find_or_alloc(const std::string& fileName, int blockIndex)
 {	
-	LOG("1333zzzz2","123123");
+	//LOG("1333zzzz2","123123");
 	auto iter = findBlock(fileName, blockIndex);
 	if (iter != blocks.end()) {
 		//todo size o(n)?
@@ -20,12 +21,11 @@ Block& BufferManager::find_or_alloc(const std::string& fileName, int blockIndex)
 }
 void BufferManager::save() {
 	for (auto b : blocks) {
-		b->save();
 		delete b;
 	}
 }
 void readFile(Block* block) {
-	std::ifstream in{ string("data/") + block->fileName + std::to_string(block->blockIndex) + ".txt" };
+	std::ifstream in{ dataDir + block->fileName +"_"+ std::to_string(block->blockIndex) + ".txt" };
 	if (in.is_open()) {
 		in.read(block->_buffer, Block::BLOCKSIZE);
 	}

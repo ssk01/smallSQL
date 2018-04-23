@@ -5,10 +5,12 @@
 #include <sstream>
 #include <ostream>
 #include <fstream>
+#include <cstdio>
 #include <tuple>
 #include "token.h"
 #include "util.h"
 #include "errors.h"
+#include "log.h"
 using std::tuple;
 using std::string;
 using std::vector;
@@ -103,21 +105,29 @@ public:
 	}
 	Table(){}
 	static Table load(const string& name) {
-		std::ifstream in{ string("tableInfo/") + name + ".txt" };
-		in.seekg(0, std::ios::beg);
-		string _tableName;
-		in >> _tableName;
-		assert(_tableName == name);
-		int attrSize;
-		in >> attrSize;
-		vector<Attribute> attr;
-		for (int i = 0; i < attrSize; i++) {
-			attr.emplace_back(in);
+		std::ifstream in{ tableInfoDir + name + ".txt" };
+		if (in.is_open()) {
+			string _tableName;
+			in >> _tableName;
+			assert(_tableName == name);
+			int attrSize;
+			in >> attrSize;
+			vector<Attribute> attr;
+			for (int i = 0; i < attrSize; i++) {
+				attr.emplace_back(in);
+			}
+			return Table{ name, attr };
+			LOG("load table: ", name);
 		}
-		return Table{ name, attr };
+		else {
+			LOG("load table: empty");
+		}
+	}
+	void drop() {
+		std::remove((tableInfoDir + tablename + ".txt").c_str());
 	}
 	void save() {
-		std::ofstream out{ string("tableInfo/")+ tablename+".txt" };
+		std::ofstream out{ tableInfoDir + tablename+".txt", std::ios::trunc };
 		out.seekp(0, std::ios::beg);
 		out << tablename << "\n";
 		out << attributes.size() << "\n";
@@ -313,9 +323,7 @@ public:
 	string tablename;
 	vector<Attribute> attributes;
 };
-class value {
 
-};
 
 //char* insert(const string& name, const vector<string>& content)
 //{

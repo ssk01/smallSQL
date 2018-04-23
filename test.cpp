@@ -1,18 +1,21 @@
 #include "test.h"
 using namespace std;
 void serializer() {
-	string input(R"(
-create table person(
-	height float,
-		pid int,
-		name char(32),
-		identity char(128),
-		age int unique,
-);
-insert into person values(188.1, 18, "Person11", "000018", 32);
-insert into person values(188.1, 18, "Person11", "000018", 1);
+//	string input(R"(
+//create table person(
+//	height float,
+//		pid int,
+//		name char(32),
+//		identity char(128),
+//		age int unique,
+//);
+//insert into person values(188.1, 18, "Person11", "000018", 32);
+//insert into person values(188.1, 18, "Person11", "000018", 1);
+//)");
+	string input1(R"(
+	select * from person;
 )");
-	Interpreter s(input);
+	Interpreter s(input1);
 	s.run();
 	showTableRecord("person");
 //	s.run(R"(insert into person values(188.1, 18, "Person11", "000018", 35);
@@ -81,6 +84,8 @@ select * from person;
 
 
 void test_unique1() {
+	//delete from person where age = 32;
+//select * from person;
 	string input(R"(
 create table person(
 	height float,
@@ -91,16 +96,23 @@ create table person(
 );
 insert into person values(188.1, 18, "Person11", "000018", 35);
 insert into person values(168.1, 18, "Person12", "000018", 32);
-insert into person values(168.1, 19, "Person15", "000018", 32);
 insert into person values(168.1, 18, "Person12", "000018", 33);
-
+insert into person values(168.1, 19, "Person15", "000018", 32);
 )");
-	//delete from person where age = 331;
+//drop table person;
 	Interpreter s(input);
 	s.run();
 	cout << "\n\n\n" << endl;
 	showTableRecord("person");
 
+}
+void droptable() {
+	string input(R"(
+	drop table person;
+	)");
+	Interpreter s(input);
+	s.run();
+	cout << "\n\n\n" << endl;
 }
 void test_unique2() {
 	string input(R"(

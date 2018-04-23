@@ -38,6 +38,7 @@ public:
 	}
 	void dropTable(const string& name)
 	{
+		nameTables[name].drop();
 		nameTables.erase(name);
 	}
 	string attributeType(const string& name, const string& attrName) {
@@ -133,7 +134,7 @@ private:
 		load();
 	}
 	void save() {
-		std::ofstream out{ string("catalogData/") + "tablename.txt" };
+		std::ofstream out{ catalogDataDir + "tablename.txt", std::ios::trunc };
 		out << nameTables.size() << endl;
 		for (auto value : nameTables) {
 			out << value.first << "\n";
@@ -142,7 +143,7 @@ private:
 		}
 	}
 	void load() {
-		std::ifstream in{ string("catalogData/") + "tablename.txt" };
+		std::ifstream in{ catalogDataDir + "tablename.txt" };
 		if (in.is_open()) {
 			size_t size;
 			in >> size;
@@ -151,17 +152,18 @@ private:
 				in >> tableName;
 				auto table = Table::load(tableName);
 				nameTables[tableName] = table;
-
-				cout << table.attributes.size();
+				LOG("load catalogData: table attributes size", table.attributes.size());
+				//cout << table.attributes.size();
 			}
-			cout << "after load " << endl;
+			/*cout << "after load " << endl;
 			for (auto value : nameTables) {
 				cout << value.first << "\n";
 				cout << value.second << endl;
-			}
+			}*/
 		}
 		else {
-			cout << "not open catalogData" << endl;
+			//cout << "not open catalogData" << endl;
+			LOG("load catalogData: empty");
 		}
 
 	}
