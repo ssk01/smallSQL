@@ -308,6 +308,9 @@ create table person6(
 insert into person6 values(188.1, 18, "Person11", "000018", 2);
 insert into person6 values(188.1, 18, "Person11", "000018", 3);
 insert into person6 values(188.1, 18, "Person11", "000018", 4);
+insert into person6 values(188.1, 18, "Person11", "000018", 2);
+insert into person6 values(188.1, 18, "Person11", "000018", 3);
+insert into person6 values(188.1, 18, "Person11", "000018", 4);
 )");
 //insert into person1 values(188.1, 18, "Person11", "000018", 1);
 
@@ -316,11 +319,33 @@ insert into person6 values(188.1, 18, "Person11", "000018", 4);
 //insert into person values(188.1, 18, "Person11", "000018", 35);
 	//drop table person;
 	//showTableRecord("person");
-	//Interpreter s(input);
-	//s.run();
+	Interpreter s(input);
+	s.run();
 	showTableRecord("person6");
 
 	cout << "\n\n\n" << endl;
+}
+
+void deleteRecord() {
+	string input(R"(
+delete from person6 where age = 2;
+)");
+	Interpreter s(input);
+	s.run();
+	//showTableRecord("person6");
+}
+void test_dropTable() {
+	string input(R"(
+drop table person6;
+)");
+	//drop table person;
+	//drop table person1;
+	//drop table person2;
+	//drop table person3;
+	//drop table person4;
+	//drop table person5;
+	Interpreter s(input);
+	s.run();
 }
 //	string input1(R"(
 //create table person(

@@ -106,8 +106,8 @@ public:
 			if (in.is_open()) {
 				in.close();
 				LOG("drop block out ", fileName, i);
-				auto file = (dataDir + fileName + "_" + std::to_string(i) + ".txt").c_str();
-			cout <<"remove "<<file<<	std::remove(file);
+				string file = (dataDir + fileName + "_" + std::to_string(i) + ".txt");
+			cout <<"remove "<<file<<"\t"<<std::remove(file.c_str());
 			}
 		}
 		blocks.erase(removed, blocks.end());

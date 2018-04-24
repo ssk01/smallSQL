@@ -11,8 +11,11 @@ int main() {
 			cout << e.what() << endl;
 		}
 	};
-	test(test_insert_memory);
+	test(test_dropTable);
+	//test(test_insert_memory);
+	//test(deleteRecord);
 	try {
+		selects("person6", {});
 	//dropTable("person");
 		//cout <<"remove "<<(dataDir + "person"+ "_" + std::to_string(0) + ".txt").c_str();
 	//showTableRecord("person");

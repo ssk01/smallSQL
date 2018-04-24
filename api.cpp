@@ -28,7 +28,38 @@ void addTable(const string& name, vector<Attribute>& attr) {
 	CatalogManager::instance().addTable(name, attr);
 	RecordManager::instance().createTable(name, CatalogManager::instance().getEntrySize(name));
 }
-static pair<vector<char *>, vector<Record>> __selects(const string& tableName, const vector<Condition>& conds) {
+//static pair<vector<char *>, vector<Record>> __selects(const string& tableName, const vector<Condition>& conds) {
+//	CatalogManager::instance().assertExisted(tableName);
+//	for (const auto &c : conds) {
+//		c.init(tableName);
+//	}
+//	//indexes;
+//	auto indexesConditon = vector<Condition>();
+//	auto normalConditon = vector<Condition>();
+//	std::for_each(conds.begin(), conds.end(), [&](const Condition & c) {
+//		if (c.indexName != "") {
+//			indexesConditon.push_back(c);
+//		}
+//		else {
+//			normalConditon.push_back(c);
+//		}
+//	});
+//	//vector<char *> ByteValues;
+//	if (!indexesConditon.empty()) {
+//		set<pair<int, int>> matched;
+//		for (auto &c : indexesConditon) {
+//			auto recs = IndexManager::instance().select(tableName, c);
+//			matched.insert(recs.begin(), recs.end());
+//		}
+//		return RecordManager::instance().select(tableName, { matched.begin(), matched.end() }, normalConditon);
+//	}
+//	//no indexes;
+//	else {
+//		cout << "no indexes " << endl;
+//		return RecordManager::instance().select(tableName, conds);
+//	}
+//}
+std::function< pair<char *, Record>()> __selectGen(const string& tableName, const vector<Condition>& conds) {
 	CatalogManager::instance().assertExisted(tableName);
 	for (const auto &c : conds) {
 		c.init(tableName);
@@ -51,12 +82,12 @@ static pair<vector<char *>, vector<Record>> __selects(const string& tableName, c
 			auto recs = IndexManager::instance().select(tableName, c);
 			matched.insert(recs.begin(), recs.end());
 		}
-		return RecordManager::instance().select(tableName, { matched.begin(), matched.end() }, normalConditon);
+		return RecordManager::instance().selectGen(tableName, { matched.begin(), matched.end() }, normalConditon);
 	}
 	//no indexes;
 	else {
 		cout << "no indexes " << endl;
-		return RecordManager::instance().select(tableName, conds);
+		return RecordManager::instance().selectGen(tableName, conds);
 	}
 }
 // add index prev added record;
@@ -65,31 +96,62 @@ void addIndex(const string& tableName, const string& indexName, const string& at
 	CatalogManager::instance().assertNotExisted(tableName, indexName);
 	CatalogManager::instance().addIndex(tableName, indexName, attrName);
 	//assert it must be unique on attrName;
-	IndexManager::instance().addIndex(tableName, indexName, attrName, __selects(tableName, {}));
-
+	auto selected = __selectGen(tableName, {});
+	auto s = selected();
+	while (s.first != nullptr) {
+		auto record = s.second;
+		auto v = s.first;
+		IndexManager::instance().addIndex(tableName, indexName, attrName, v, record);
+		s = selected();
+	}
 }
 
+//void selects(const string& tableName, const vector<Condition>& conds) {
+//	auto selected = __selects(tableName, conds);
+//	auto byteValues = selected.first;
+//	cout << "select result:" << endl;
+//
+//	for (auto v : byteValues) {
+//		CatalogManager::instance().showTableRecord(tableName, v);
+//	}
+//}
 void selects(const string& tableName, const vector<Condition>& conds) {
-	auto selected = __selects(tableName, conds);
-	auto byteValues = selected.first;
-	cout << "select result:" << endl;
-
-	for (auto v : byteValues) {
+	auto selected = __selectGen(tableName, conds);
+	//auto byteValues = selected.first;
+	auto s = selected();
+	while (s.first != nullptr) {
+		auto record = s.second;
+		auto v = s.first;
 		CatalogManager::instance().showTableRecord(tableName, v);
+		s = selected();
 	}
-
+	cout << "select result:" << endl;
 }
 void deleteRecords(const string& tableName, const vector<Condition>& conds) {
-	auto selected = __selects(tableName, conds);
-	auto byteValues = selected.first;
-	auto entrys = selected.second;
+	auto selected = __selectGen(tableName, conds);
+	//auto byteValues = selected.first;
+	vector<Record> entrys;
+	auto s = selected();
+	while (s.first != nullptr) {
+		auto v = s.first;
+		entrys.emplace_back(s.second);
+		IndexManager::instance().deleteIndexReocrd(tableName, v);
+		s = selected();
+	}
 	for (auto entry : entrys) {
 		RecordManager::instance().deleteRecord(tableName, entry);
 	}
-	for (auto v : byteValues) {
-		IndexManager::instance().deleteIndexReocrd(tableName, v);
-	}
-	cout << "delete result:" << endl;
+	//cout << "select result:" << endl;
+	//auto selected = __selects(tableName, conds);
+	//auto byteValues = selected.first;
+	//auto entrys = selected.second;
+	//for (auto entry : entrys) {
+	//	RecordManager::instance().deleteRecord(tableName, entry);
+	//}
+	//for (auto v : byteValues) {
+	//	IndexManager::instance().deleteIndexReocrd(tableName, v);
+	//}
+	//cout << "delete result:" << endl;
 
 }
 

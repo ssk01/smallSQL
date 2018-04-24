@@ -86,7 +86,7 @@ public:
 		for (auto r = indexs.begin(); r != indexs.end(); r++) {
 			auto key = (*r).first;
 			if (Condition::eval(c.op, key, condiValue)) {
-				//continue;
+				//todo;
 				res.insert(indexs[key]);
 			}
 		}
@@ -258,17 +258,17 @@ public:
 		}
 	}
 	// add index prev added record;
-	void addIndex(const string& name, const string& indexName, const string& attrName, pair<vector<char *>, vector<Record>>& res) {
+	void addIndex(const string& name, const string& indexName, const string& attrName, char* value, const Record & record) {
 		auto attribute = CatalogManager::instance().attribute(name, attrName);
 		auto offset = CatalogManager::instance().attributeOffset(name, attribute.i);
 		auto type = attribute.type;
-		auto bytevalues = res.first;
-		auto records = res.second;
-		assert(records.size() == bytevalues.size());
-		nameIndexs[name] = { name };
-		for (size_t i = 0; i < records.size(); i++) {
-			auto value = bytevalues[i];
-			auto record = records[i];
+		//auto bytevalues = res.first;
+		//auto records = res.second;
+		//assert(records.size() == bytevalues.size());
+		//nameIndexs[name] = { name };
+		//for (size_t i = 0; i < records.size(); i++) {
+		//	auto value = bytevalues[i];
+		//	auto record = records[i];
 			if (type == "int") {
 				int val = Int(value + offset);
 				nameIndexs[name].insertIndex(indexName, val ,record);
@@ -281,7 +281,7 @@ public:
 				float val = Float(value + offset);
 				nameIndexs[name].insertIndex(indexName, val, record);
 			}
-		}
+		//}
 	}
 	void dropIndex(const string& name, const string& indexName) {
 		nameIndexs[name].dropIndex(indexName);

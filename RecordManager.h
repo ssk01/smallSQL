@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <functional>
 #include "block.h"
 #include "util.h"
 #include "condition.h"
@@ -103,6 +104,67 @@ public:
 			//res.push_back(value)/*;*/
 		}
 		return res;
+	}
+
+	int i = 0;
+	std::function< pair<char *, Record>()> selectGen(const vector<Record> &recs, const vector<Condition>& conds) {
+		cout <<"size :"<< recs.size() << endl;
+		auto f = [this, recs,  conds]() ->pair<char *, Record>{
+			cout << "size :" << recs.size() <<"i "<< i << "  "<<conds.size()<< endl;
+			while (i < recs.size()) {
+					//todo it must be find
+				auto entry = recs[i];
+				i++;
+				LOG("select block get ");
+				auto block = BufferManager::instance().find_or_alloc(tableName, entry.first);
+				LOG("select block end ");
+
+				char *byteValue = block->rawPtr() + entry.second * entrySize;
+
+				int condTure = 0;
+				for (auto &c : conds) {
+					auto off = CatalogManager::instance().attributeOffset(tableName, c.i);
+					if (c.token.type == "int") {
+						auto val = Int(byteValue + off);
+						if (Condition::eval(c.op, val, c.token.toInt())) {
+							condTure += 1;
+						}
+						else {
+							break;
+						}
+					}
+					else if (c.token.type == "float") {
+						auto val = Float(byteValue + off);
+						if (Condition::eval(c.op, val, c.token.toFloat())) {
+							condTure += 1;
+						}
+						else {
+							break;
+						}
+					}
+					else if (c.token.type == "char") {
+						auto val = string(byteValue + off);
+						if (Condition::eval(c.op, val, c.token.toString())) {
+							condTure += 1;
+						}
+						else {
+							break;
+						}
+					}
+				}
+				if (condTure == conds.size()) {
+					return{ byteValue, entry };
+				}
+
+			}
+			i = 0;
+			return{ nullptr,{ 0,0 } };
+		};
+		return f;
+	}
+	std::function< pair<char *, Record>()> selectGen(const vector<Condition>& conds) {
+		cout << records.size() << endl;
+		return selectGen({ records.begin(), records.end() }, conds);
 	}
 	pair<vector<char *>, vector<Record>> select(const vector<Record> &recs, const vector<Condition>& conds) {
 		vector<char *> byteValues;
@@ -240,11 +302,17 @@ public:
 	pair<vector<char *>, vector<Record>> select(const string& tableName, const vector<Condition>& conds) {
 		return tableInfos[tableName].select(conds);
 	}
-	void deleteRecord(const string& tableName, Record entry) {
-		return tableInfos[tableName].deleteRecord(entry);
-	}
 	pair<vector<char *>, vector<Record>>  select(const string& tableName,const vector<Record> & recs,const vector<Condition>& conds) {
 		return tableInfos[tableName].select(recs, conds);
+	}
+	std::function< pair<char *, Record>()>  selectGen(const string& tableName, const vector<Record> & recs, const vector<Condition>& conds) {
+		return tableInfos[tableName].selectGen(recs, conds);
+	}
+	std::function< pair<char *, Record>()> selectGen(const string& tableName, const vector<Condition>& conds) {
+		return tableInfos[tableName].selectGen(conds);
+	}
+	void deleteRecord(const string& tableName, Record entry) {
+		return tableInfos[tableName].deleteRecord(entry);
 	}
 
 	void createTable(const string &name, int entrySize) {

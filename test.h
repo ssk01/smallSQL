@@ -13,3 +13,6 @@ void index1();
 void index2();
 void serializer();
 void test_insert_memory();
+void deleteRecord();
+void test_dropTable();
+
