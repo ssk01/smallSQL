@@ -138,9 +138,9 @@ void showTableRecord(const string &name) {
 
 	auto values = RecordManager::instance().showReocrd(name);
 	cout << "show  table record table :" + name << endl;
-	for (auto &value : values) {
-		CatalogManager::instance().showTableRecord(name, value);
-	}
+	//for (auto &value : values) {
+	//	CatalogManager::instance().showTableRecord(name, value);
+	//}
 	cout << "\n" << endl;
 }
 void showIndex(const string& tableName, const string& indexName) {

@@ -94,10 +94,13 @@ public:
 	vector<char *> showAllReocrd() {
 		vector<char *> res;
 		for (auto &entry : records) {
-			char *value = new char[entrySize+1];	
+			//todo
+			//char *value = new char[entrySize+1];	
 			auto block = BufferManager::instance().find_or_alloc(tableName, entry.first);
-			memcpy(value, block.rawPtr() + entry.second * entrySize, entrySize);
-			res.push_back(value);
+			//memcpy(value, block->rawPtr() + entry.second * entrySize, entrySize);
+			char *value = block->rawPtr() + entry.second * entrySize;
+			CatalogManager::instance().showTableRecord(tableName, value);
+			//res.push_back(value)/*;*/
 		}
 		return res;
 	}
@@ -107,8 +110,11 @@ public:
 		for (auto &entry : recs) {
 
 			//todo it must be find
+			LOG("select block get ");
 			auto block = BufferManager::instance().find_or_alloc(tableName, entry.first);
-			char *byteValue = block.rawPtr() + entry.second * entrySize;
+			LOG("select block end ");
+
+			char *byteValue = block->rawPtr() + entry.second * entrySize;
 
 			int condTure = 0;
 			for (auto &c : conds) {
@@ -153,12 +159,12 @@ public:
 	}
 	
 	bool recordExist(const Token& content, int i, int offset) {
-		char *byteValue = new char[entrySize];
+		char *byteValue;
 		for (auto &entry : records) {
 
 			//todo it must be find
 			auto block = BufferManager::instance().find_or_alloc(tableName, entry.first);
-			memcpy(byteValue, block.rawPtr() + entry.second * entrySize, entrySize);
+			byteValue = block->rawPtr() + entry.second * entrySize;
 			if (content.type == "int") {
 				auto lhs = content.toInt();
 				auto rhs = Int(byteValue + offset);
@@ -189,23 +195,29 @@ public:
 	}
 	Record insertRecord(char *content) {
 		Record entry;
+		LOG("nextPos: ", nextPos.first, nextPos.second);
+
 		if (free_records.size()) {
-			cout << "fuck" << endl;
-			exit(0);
+			entry = free_records.back();
+			free_records.pop_back();
+			LOG("get entry from free_record");
+			//cout << "fuck" << endl;
+			//exit(0);
 		} else {
 			entry = nextPos;
 			auto add = [&]() {
 				nextPos.second += 1;
-				if (nextPos.second * entrySize > Block::BLOCKSIZE) {
+				if ((nextPos.second + 1) * entrySize > Block::BLOCKSIZE) {
 					nextPos.first += 1;
 					nextPos.second = 0;
 				}
 			};
 			add();
 		}
+		LOG("nextPos: ", nextPos.first, nextPos.second);
 		records.push_back(entry);
 		auto block = BufferManager::instance().find_or_alloc(tableName, entry.first);
-		memcpy(block.rawPtr() + entry.second * entrySize, content, entrySize);
+		memcpy(block->rawPtr() + entry.second * entrySize, content, entrySize);
 		return entry;
 	}
 

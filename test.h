@@ -12,3 +12,4 @@ void test_unique4();
 void index1(); 
 void index2();
 void serializer();
+void test_insert_memory();

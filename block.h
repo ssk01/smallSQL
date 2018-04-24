@@ -22,7 +22,7 @@ public:
 	//friend class Recordlist;
 	friend void readFile(Block* newBlock);
 	friend class BufferManager;
-	const static int BLOCKSIZE = 1024;
+	const static int BLOCKSIZE = 300;
 	void save() {
 		if (dirty == 1) {
 			////cout << "save block" << endl;
@@ -52,6 +52,7 @@ public:
 		if (_buffer == nullptr) {
 			throw InsuffcientSpace("can not new a block any more");
 		}
+		LOG("block constructor", name, index);
 	}
 	char *rawPtr() {
 		return _buffer;
@@ -112,17 +113,19 @@ public:
 		blocks.erase(removed, blocks.end());
 		LOG("amazed");
 	}
-	Block& find_or_alloc(const std::string& fileName, int blockIndex);
+	Block* find_or_alloc(const std::string& fileName, int blockIndex);
 	BufferManager() = default;
 	~BufferManager() {
+		LOG("buffermanager deconstructor");
 		save();
 	}
 private:
 	void save();
 	list<Block *> blocks;
-	const static int BlockCount = 128;
+	//const static int BlockCount = 1;
+	const  int BlockCount = 1;
 	//void read_file(const Block* block);
-	Block& alloc_block(const std::string& fileName, int blockIndex);
+	Block* alloc_block(const std::string& fileName, int blockIndex);
 	ListIter findBlock(const std::string& fileName, int blockIndex);
-	Block& lruReplaceBlock(const std::string& fileName, int blockIndex);
+	Block* lruReplaceBlock(const std::string& fileName, int blockIndex);
 };

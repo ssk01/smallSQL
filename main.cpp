@@ -1,9 +1,6 @@
 #include "test.h"
 
-//todo add index pre records ;
-//what if no add.
-// input
-//index  unique feature;
+
 int main() {
 	//test_deleteRecord();
 	auto test = [](std::function<void()> fun) {
@@ -14,9 +11,9 @@ int main() {
 			cout << e.what() << endl;
 		}
 	};
-	//test(test_unique1);
+	test(test_insert_memory);
 	try {
-	dropTable("person");
+	//dropTable("person");
 		//cout <<"remove "<<(dataDir + "person"+ "_" + std::to_string(0) + ".txt").c_str();
 	//showTableRecord("person");
 	}
@@ -42,4 +39,5 @@ int main() {
 	//test(test_unique2);
 	//test(test_unique3);
 	//test(test_unique4);
+	return 0;
 }

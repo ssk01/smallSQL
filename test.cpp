@@ -296,6 +296,32 @@ insert into person values(168.1, 18, "Person15", "000018", 331);
 	showIndex("person", "name1");
 }
 
+void test_insert_memory() {
+	string input(R"(
+create table person6(
+	height float,
+		pid int,
+		name char(32),
+		identity char(128),
+		age int,
+);
+insert into person6 values(188.1, 18, "Person11", "000018", 2);
+insert into person6 values(188.1, 18, "Person11", "000018", 3);
+insert into person6 values(188.1, 18, "Person11", "000018", 4);
+)");
+//insert into person1 values(188.1, 18, "Person11", "000018", 1);
+
+//insert into person1 values(188.1, 18, "Person11", "000018", 3);
+//select * from person ;
+//insert into person values(188.1, 18, "Person11", "000018", 35);
+	//drop table person;
+	//showTableRecord("person");
+	//Interpreter s(input);
+	//s.run();
+	showTableRecord("person6");
+
+	cout << "\n\n\n" << endl;
+}
 //	string input1(R"(
 //create table person(
 //	height float,
@@ -314,3 +340,5 @@ insert into person values(168.1, 18, "Person15", "000018", 331);
 //	showTableRecord("person");
 //	showIndex("person", "name1");
 //
+
+
