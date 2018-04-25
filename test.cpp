@@ -64,22 +64,21 @@ create index name1 on person(name);
 
 insert into person values(188.1, 18, "Person11", "000018", 35);
 insert into person values(168.1, 18, "Person12", "000018", 32);
-insert into person values(168.1, 19, "Person15", "000018", 32);
-insert into person values(168.1, 18, "Person12", "000018", 33);
-
+insert into person values(168.1, 19, "Person15", "000018", 31);
+insert into person values(168.1, 18, "Person14", "000018", 33);
 )");
 	Interpreter s(input);
 	s.run();
-	string input1(R"(
-drop index name1 on person;
-insert into person values(16.0, 18, "Person12", "000018", 33);
-select * from person;
-)");
-	cout << "mmmm" << endl;
-	s.run(input1);
+//	string input1(R"(
+//drop index name1 on person;
+//insert into person values(16.0, 18, "Person12", "000018", 33);
+//select * from person;
+//)");
+//	cout << "mmmm" << endl;
+//	s.run(input1);
 	cout << "\n\n\n" << endl;
 	showTableRecord("person");
-	showIndex("person", "name1");
+	//showIndex("person", "name1");
 }
 
 
@@ -268,21 +267,8 @@ insert into person values(168.1, 18, "Person15", "000018", 331);
 
 void test_deleteRecord() {
 	string input(R"(
-create table person(
-	height float,
-		pid int,
-		name char(32),
-		identity char(128),
-		age int unique,
-);
-create index name1 on person(name);
-insert into person values(188.1, 18, "Person11", "000018", 35);
-insert into person values(168.1, 18, "Person12", "000018", 32);
-insert into person values(168.1, 18, "Person13", "000018", 33);
-insert into person values(168.1, 18, "Person14", "000018", 332);
-insert into person values(168.1, 18, "Person15", "000018", 331);
-	delete from person where age = 332;
-	delete from person where name = "Person15";
+
+	delete from person where age = 32;
 
 
 )");
@@ -296,18 +282,18 @@ insert into person values(168.1, 18, "Person15", "000018", 331);
 	showIndex("person", "name1");
 }
 
+//create table person6(
+//	height float,
+//		pid int,
+//		name char(32),
+//		identity char(128),
+//		age int,
+//);
+//insert into person6 values(188.1, 18, "Person11", "000018", 2);
+//insert into person6 values(188.1, 18, "Person11", "000018", 3);
+//insert into person6 values(188.1, 18, "Person11", "000018", 4);
 void test_insert_memory() {
 	string input(R"(
-create table person6(
-	height float,
-		pid int,
-		name char(32),
-		identity char(128),
-		age int,
-);
-insert into person6 values(188.1, 18, "Person11", "000018", 2);
-insert into person6 values(188.1, 18, "Person11", "000018", 3);
-insert into person6 values(188.1, 18, "Person11", "000018", 4);
 insert into person6 values(188.1, 18, "Person11", "000018", 2);
 insert into person6 values(188.1, 18, "Person11", "000018", 3);
 insert into person6 values(188.1, 18, "Person11", "000018", 4);
@@ -336,7 +322,7 @@ delete from person6 where age = 2;
 }
 void test_dropTable() {
 	string input(R"(
-drop table person6;
+drop table person;
 )");
 	//drop table person;
 	//drop table person1;

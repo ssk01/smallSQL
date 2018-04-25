@@ -18,9 +18,10 @@ void dropIndex(const string& tableName, const string& indexName)
 void dropTable(const string& tableName) {
 	CatalogManager::instance().assertExisted(tableName);
 	auto blockIndexs = RecordManager::instance().dropTable(tableName);
-	//IndexManager::instance().dropIndex(tableName);
+	IndexManager::instance().dropIndex(tableName);
 	CatalogManager::instance().dropTable(tableName);
 	BufferManager::instance().dropTable(tableName, blockIndexs);
+
 }
 
 void addTable(const string& name, vector<Attribute>& attr) {

@@ -14,12 +14,13 @@ public:
 	/*Index(const string& tableName):tableName(tableName) {}*/
 	Index() {}
 	Index(const string& tableName, const string& indexName)  {
-		//load(tableName, indexName);
+		load(tableName, indexName);
 	}
 	void load(const string& tableName, const string& indexName) {
-		std::ifstream in{ string("indexes/") + tableName + "_" + indexName ".txt" };
+		std::ifstream in{ indexPath(tableName, indexName )};
 		if (!in.is_open()) {
-			fck();
+			//fck();
+			LOG("index load error", tableName, indexName);
 		}
 		size_t size = 0;
 		in >> size;
@@ -27,14 +28,14 @@ public:
 			T key;
 			Record rec;
 			in >> key;
-			in >> res.first;
-			in >> res.second;
+			in >> rec.first;
+			in >> rec.second;
 			indexs[key] = rec;
 		}
 	}
 	//tableName
 	void save(const string& tableName, const string& indexName) {
-		std::ofstream out{ string("indexes/") + tableName +"_"+indexName + ".txt" };
+		std::ofstream out{ indexPath(tableName, indexName), std::ios::trunc };
 		out << indexs.size() << "\n";
 		for (auto &kv : indexs) {
 			out << kv.first << "\n";
@@ -99,12 +100,24 @@ private:
 	//int i;
 };
 class Indexs {
-	string tableName;
+	//string tableName;
 	map<string, Index<int>> intIndex;
 	map<string, Index<string>> charIndex;
 	map<string, Index<float>> floatIndex;
 public:
-	void dropIndex(const string& indexName) {
+	void dropIndex(const string&tableName) {
+		for (auto i : intIndex) {
+			tryRemove(indexPath(tableName, i.first).c_str());
+		}
+		for (auto i : charIndex) {
+			tryRemove(indexPath(tableName, i.first).c_str());
+		}
+		for (auto i : floatIndex) {
+			tryRemove(indexPath(tableName, i.first).c_str());
+		}
+	}
+	void dropIndex(const string&tableName, const string& indexName) {
+		tryRemove(indexPath(tableName, indexName).c_str());
 		if (intIndex.find(indexName) != intIndex.end()) {
 			intIndex.erase(indexName);
 		}
@@ -117,28 +130,27 @@ public:
 	}
 	Indexs() {};
 	//Indexs(const string& tablName): {};
-	void save() {
-		std::ofstream out{ string("indexes/") + tableName + ".txt" };
-		//in <<
+	void save(const string& tableName) {
+		std::ofstream out{ indexInfoPath(tableName), std::ios::trunc };
 		out << tableName << "\n";
 		out << intIndex.size() << "\n";
-		out << charIndex.size() << "\n";
-		out << floatIndex.size() << "\n";
 		for (auto &kv : intIndex) {
 			out << kv.first << "\n";
 			kv.second.save(tableName, kv.first);
 		}
+		out << charIndex.size() << "\n";
 		for (auto &kv : charIndex) {
 			out << kv.first << "\n";
 			kv.second.save(tableName, kv.first);
 		}		
+		out << floatIndex.size() << "\n";
 		for (auto &kv : floatIndex) {
 			out << kv.first << "\n";
 			kv.second.save(tableName, kv.first);
 		}
 	}
-	void load() {
-		std::ifstream in{ string("indexesInfo/") + tableName + ".txt" };
+	void load(const string& tableName) {
+		std::ifstream in{ indexInfoPath( tableName ) };
 		if (in.is_open()) {
 			string name;
 			in >> name;
@@ -147,18 +159,18 @@ public:
 			int charIndexSize;
 			int floatIndexSize;
 			in >> intIndexSize;
-			in >> charIndexSize;
-			in >> floatIndexSize;
 			while (intIndexSize--) {
 				string indexName;
 				in >> indexName;
 				intIndex[indexName] = { tableName, indexName };
 			}
+			in >> charIndexSize;
 			while (charIndexSize--) {
 				string indexName;
 				in >> indexName;
 				charIndex[indexName] = { tableName, indexName };
 			}
+			in >> floatIndexSize;
 			while (floatIndexSize--) {
 				string indexName;
 				in >> indexName;
@@ -169,9 +181,9 @@ public:
 			cout << "first time, not load table: " + tableName << endl;
 		}
 	}
-	Indexs(const string& tableName):tableName(tableName) {
+	//Indexs(const string& tableName):tableName(tableName) {
 		//load();
-	};
+	//};
 
 	~Indexs() {
 		cout << "index deconstruct" << endl;
@@ -231,25 +243,31 @@ public:
 };
 class IndexManager {
 public:
-	IndexManager(){}
+	IndexManager(){
+		load();
+	}
+	~IndexManager() {
+		save();
+	}
 	static IndexManager& instance() {
 		static IndexManager im;
 		return im;
 	}
 	void save() {
 		for (auto &kv : nameIndexs) {
-			kv.second.save();
+			kv.second.save(kv.first);
 		}
 	}
 	void load() {
-		std::ifstream in{ string("catalogData/") + "tablename.txt" };
+		std::ifstream in{ catalogDataPath() };
 		if (in.is_open()) {
 			size_t size;
 			in >> size;
 			string tableName;
 			while (size--> 0) {
 				in >> tableName;
-				nameIndexs[tableName] = { tableName };
+				nameIndexs[tableName] = {  };
+				nameIndexs[tableName].load(tableName);
 			}
 			cout << "after load " << endl;
 		}
@@ -262,13 +280,6 @@ public:
 		auto attribute = CatalogManager::instance().attribute(name, attrName);
 		auto offset = CatalogManager::instance().attributeOffset(name, attribute.i);
 		auto type = attribute.type;
-		//auto bytevalues = res.first;
-		//auto records = res.second;
-		//assert(records.size() == bytevalues.size());
-		//nameIndexs[name] = { name };
-		//for (size_t i = 0; i < records.size(); i++) {
-		//	auto value = bytevalues[i];
-		//	auto record = records[i];
 			if (type == "int") {
 				int val = Int(value + offset);
 				nameIndexs[name].insertIndex(indexName, val ,record);
@@ -284,9 +295,11 @@ public:
 		//}
 	}
 	void dropIndex(const string& name, const string& indexName) {
-		nameIndexs[name].dropIndex(indexName);
+		nameIndexs[name].dropIndex(name,indexName);
 	}
 	void dropIndex(const string& name) {
+		tryRemove(indexInfoPath(name).c_str());
+		nameIndexs[name].dropIndex(name);
 		nameIndexs.erase(name);
 	}
 	set<Record> select(const string& tableName, const Condition& c) {

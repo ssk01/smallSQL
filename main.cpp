@@ -12,10 +12,12 @@ int main() {
 		}
 	};
 	test(test_dropTable);
-	//test(test_insert_memory);
+	//test(index1);
+	//test(test_deleteRecord);
 	//test(deleteRecord);
+	//deleteRecord();
 	try {
-		selects("person6", {});
+		//selects("person", {});
 	//dropTable("person");
 		//cout <<"remove "<<(dataDir + "person"+ "_" + std::to_string(0) + ".txt").c_str();
 	//showTableRecord("person");

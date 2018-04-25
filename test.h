@@ -15,4 +15,5 @@ void serializer();
 void test_insert_memory();
 void deleteRecord();
 void test_dropTable();
+void test_deleteRecord();
 

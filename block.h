@@ -22,7 +22,7 @@ public:
 	//friend class Recordlist;
 	friend void readFile(Block* newBlock);
 	friend class BufferManager;
-	const static int BLOCKSIZE = 300;
+	const static int BLOCKSIZE = 500;
 	void save() {
 		if (dirty == 1) {
 			////cout << "save block" << endl;
