@@ -12,7 +12,8 @@ Block* BufferManager::find_or_alloc(const std::string& fileName, int blockIndex)
 	if (iter != blocks.end()) {
 		//todo size o(n)?
 		if (blocks.size() >= 5 && iter != blocks.begin()) {
-			blocks.splice(blocks.begin(), blocks, iter, std::next(iter));
+			LOG("move first");
+			//blocks.splice(blocks.begin(), blocks, iter, std::next(iter));
 		}
 		return *iter;
 	}

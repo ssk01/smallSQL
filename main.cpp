@@ -1,4 +1,7 @@
+#include <chrono>
+#include <functional>
 #include "test.h"
+using namespace std;
 
 
 int main() {
@@ -11,20 +14,36 @@ int main() {
 			cout << e.what() << endl;
 		}
 	};
-	test(test_dropTable);
+	//test(test_dropTable);
 	//test(index1);
 	//test(test_deleteRecord);
 	//test(deleteRecord);
 	//deleteRecord();
-	try {
-		//selects("person", {});
-	//dropTable("person");
-		//cout <<"remove "<<(dataDir + "person"+ "_" + std::to_string(0) + ".txt").c_str();
-	//showTableRecord("person");
-	}
-	catch (std::runtime_error& e) {
-		cout << e.what() << endl;
-	}
+	auto timeer = [](function<void(string)> f, string age) {
+		//fstream fout("log.txt", ios::app | ios::out);
+		auto start = std::chrono::system_clock::now();
+		f(age);
+		auto end = std::chrono::system_clock::now();
+		std::chrono::duration<double> elapsed_seconds = end - start;
+		cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
+	};
+	//timeer(time_create, "");
+	Interpreter i;
+
+	//i.run("create index age on person2(age);");
+
+	timeer(time_select, "500");
+	LOG("hit1");
+	timeer(time_select, "500");
+	LOG("hit2");
+	timeer(time_select, "500");
+	timeer(time_select, "500");
+	//try {
+
+	//}
+	//catch (std::runtime_error& e) {
+	//	cout << e.what() << endl;
+	//}
 	/*string a("bbb");
 	string a1("bbc");
 	string a12("bbc");

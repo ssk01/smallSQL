@@ -244,10 +244,10 @@ public:
 class IndexManager {
 public:
 	IndexManager(){
-		load();
+		//load();
 	}
 	~IndexManager() {
-		save();
+		//save();
 	}
 	static IndexManager& instance() {
 		static IndexManager im;

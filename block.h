@@ -22,7 +22,7 @@ public:
 	//friend class Recordlist;
 	friend void readFile(Block* newBlock);
 	friend class BufferManager;
-	const static int BLOCKSIZE = 500;
+	const static int BLOCKSIZE = 4096;
 	void save() {
 		if (dirty == 1) {
 			////cout << "save block" << endl;
@@ -123,7 +123,7 @@ private:
 	void save();
 	list<Block *> blocks;
 	//const static int BlockCount = 1;
-	const  int BlockCount = 1;
+	const  int BlockCount = 128;
 	//void read_file(const Block* block);
 	Block* alloc_block(const std::string& fileName, int blockIndex);
 	ListIter findBlock(const std::string& fileName, int blockIndex);

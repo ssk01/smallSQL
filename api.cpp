@@ -2,18 +2,15 @@
 #include <algorithm>
 #include <set>
 #include "catalogData.h"
+#include <chrono>
+
 using std::set;
-void __load() {
-	//for (auto &name : CatalogManager::instance().name()) {
-	//	RecordManager::instance().createTable(name, CatalogManager::instance().getEntrySize(name));
-	//}
-}
+
 void dropIndex(const string& tableName, const string& indexName)
 {
 	CatalogManager::instance().assertExisted(tableName, indexName);
 	IndexManager::instance().dropIndex(tableName, indexName);
 	CatalogManager::instance().dropIndex(tableName, indexName);
-	//CatalogManager::instance().dropIndex(tableName, indexName);
 }
 void dropTable(const string& tableName) {
 	CatalogManager::instance().assertExisted(tableName);
@@ -29,37 +26,7 @@ void addTable(const string& name, vector<Attribute>& attr) {
 	CatalogManager::instance().addTable(name, attr);
 	RecordManager::instance().createTable(name, CatalogManager::instance().getEntrySize(name));
 }
-//static pair<vector<char *>, vector<Record>> __selects(const string& tableName, const vector<Condition>& conds) {
-//	CatalogManager::instance().assertExisted(tableName);
-//	for (const auto &c : conds) {
-//		c.init(tableName);
-//	}
-//	//indexes;
-//	auto indexesConditon = vector<Condition>();
-//	auto normalConditon = vector<Condition>();
-//	std::for_each(conds.begin(), conds.end(), [&](const Condition & c) {
-//		if (c.indexName != "") {
-//			indexesConditon.push_back(c);
-//		}
-//		else {
-//			normalConditon.push_back(c);
-//		}
-//	});
-//	//vector<char *> ByteValues;
-//	if (!indexesConditon.empty()) {
-//		set<pair<int, int>> matched;
-//		for (auto &c : indexesConditon) {
-//			auto recs = IndexManager::instance().select(tableName, c);
-//			matched.insert(recs.begin(), recs.end());
-//		}
-//		return RecordManager::instance().select(tableName, { matched.begin(), matched.end() }, normalConditon);
-//	}
-//	//no indexes;
-//	else {
-//		cout << "no indexes " << endl;
-//		return RecordManager::instance().select(tableName, conds);
-//	}
-//}
+
 std::function< pair<char *, Record>()> __selectGen(const string& tableName, const vector<Condition>& conds) {
 	CatalogManager::instance().assertExisted(tableName);
 	for (const auto &c : conds) {
@@ -83,6 +50,7 @@ std::function< pair<char *, Record>()> __selectGen(const string& tableName, cons
 			auto recs = IndexManager::instance().select(tableName, c);
 			matched.insert(recs.begin(), recs.end());
 		}
+		LOG("ccc", matched.size());
 		return RecordManager::instance().selectGen(tableName, { matched.begin(), matched.end() }, normalConditon);
 	}
 	//no indexes;
@@ -107,18 +75,11 @@ void addIndex(const string& tableName, const string& indexName, const string& at
 	}
 }
 
-//void selects(const string& tableName, const vector<Condition>& conds) {
-//	auto selected = __selects(tableName, conds);
-//	auto byteValues = selected.first;
-//	cout << "select result:" << endl;
-//
-//	for (auto v : byteValues) {
-//		CatalogManager::instance().showTableRecord(tableName, v);
-//	}
-//}
+
 void selects(const string& tableName, const vector<Condition>& conds) {
 	auto selected = __selectGen(tableName, conds);
 	//auto byteValues = selected.first;
+	auto start = std::chrono::system_clock::now();
 	auto s = selected();
 	while (s.first != nullptr) {
 		auto record = s.second;
@@ -126,6 +87,9 @@ void selects(const string& tableName, const vector<Condition>& conds) {
 		CatalogManager::instance().showTableRecord(tableName, v);
 		s = selected();
 	}
+	auto end = std::chrono::system_clock::now();
+	std::chrono::duration<double> elapsed_seconds = end - start;
+	cout << "selct time: " << elapsed_seconds.count() << "s\n";
 	cout << "select result:" << endl;
 }
 void deleteRecords(const string& tableName, const vector<Condition>& conds) {
@@ -142,17 +106,7 @@ void deleteRecords(const string& tableName, const vector<Condition>& conds) {
 	for (auto entry : entrys) {
 		RecordManager::instance().deleteRecord(tableName, entry);
 	}
-	//cout << "select result:" << endl;
-	//auto selected = __selects(tableName, conds);
-	//auto byteValues = selected.first;
-	//auto entrys = selected.second;
-	//for (auto entry : entrys) {
-	//	RecordManager::instance().deleteRecord(tableName, entry);
-	//}
-	//for (auto v : byteValues) {
-	//	IndexManager::instance().deleteIndexReocrd(tableName, v);
-	//}
-	//cout << "delete result:" << endl;
+
 
 }
 

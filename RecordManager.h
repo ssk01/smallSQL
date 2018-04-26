@@ -115,7 +115,7 @@ public:
 					//todo it must be find
 				auto entry = recs[i];
 				i++;
-				LOG("select block get ");
+				LOG("select block get ", entry.first, entry.second);
 				auto block = BufferManager::instance().find_or_alloc(tableName, entry.first);
 				LOG("select block end ");
 
@@ -152,7 +152,10 @@ public:
 						}
 					}
 				}
+				//records.remove(entry);
+				//records.push_front(entry);
 				if (condTure == conds.size()) {
+					LOG("success ", entry.first, entry.second);
 					return{ byteValue, entry };
 				}
 
@@ -166,60 +169,7 @@ public:
 		cout << records.size() << endl;
 		return selectGen({ records.begin(), records.end() }, conds);
 	}
-	pair<vector<char *>, vector<Record>> select(const vector<Record> &recs, const vector<Condition>& conds) {
-		vector<char *> byteValues;
-		vector<Record> entrys;
-		for (auto &entry : recs) {
 
-			//todo it must be find
-			LOG("select block get ");
-			auto block = BufferManager::instance().find_or_alloc(tableName, entry.first);
-			LOG("select block end ");
-
-			char *byteValue = block->rawPtr() + entry.second * entrySize;
-
-			int condTure = 0;
-			for (auto &c : conds) {
-				auto off = CatalogManager::instance().attributeOffset(tableName, c.i);
-				if (c.token.type == "int") {
-					auto val = Int(byteValue + off);
-					if (Condition::eval(c.op, val, c.token.toInt())) {
-						condTure += 1;
-					}
-					else {
-						break;
-					}
-				}
-				else if (c.token.type == "float") {
-					auto val = Float(byteValue + off);
-					if (Condition::eval(c.op, val, c.token.toFloat())) {
-						condTure += 1;
-					}
-					else {
-						break;
-					}
-				}
-				else if (c.token.type == "char") {
-					auto val = string(byteValue + off);
-					if (Condition::eval(c.op, val, c.token.toString())) {
-						condTure += 1;
-					}
-					else {
-						break;
-					}
-				}
-			}
-			if (condTure == conds.size()) {
-				byteValues.push_back(byteValue);
-				entrys.push_back(entry);
-			}
-		}
-		return{ byteValues, entrys };
-	}
-	pair<vector<char *>, vector<Record>> select(const vector<Condition>& conds) {
-		return select({records.begin(), records.end()}, conds);
-	}
-	
 	bool recordExist(const Token& content, int i, int offset) {
 		char *byteValue;
 		for (auto &entry : records) {
@@ -288,6 +238,7 @@ private:
 	
 	string tableName;
 	list<Record> records;
+	//list<Record> hot_records;
 	vector<Record> free_records;
 	int entrySize;
 	Record nextPos;
@@ -299,12 +250,7 @@ public:
 		static RecordManager rm;
 		return rm;
 	}
-	pair<vector<char *>, vector<Record>> select(const string& tableName, const vector<Condition>& conds) {
-		return tableInfos[tableName].select(conds);
-	}
-	pair<vector<char *>, vector<Record>>  select(const string& tableName,const vector<Record> & recs,const vector<Condition>& conds) {
-		return tableInfos[tableName].select(recs, conds);
-	}
+
 	std::function< pair<char *, Record>()>  selectGen(const string& tableName, const vector<Record> & recs, const vector<Condition>& conds) {
 		return tableInfos[tableName].selectGen(recs, conds);
 	}

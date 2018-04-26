@@ -8,7 +8,14 @@ public:
 	{
 	}
 };
-
+class FileError : public std::runtime_error
+{
+public:
+	explicit FileError(const char* msg)
+		: std::runtime_error(("Flie open error: " + std::string(msg)).c_str())
+	{
+	}
+};
 class PraserError : public std::runtime_error
 {
 public:

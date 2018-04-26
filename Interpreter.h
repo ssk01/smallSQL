@@ -6,16 +6,12 @@
 #include "api.h"
 class Interpreter {
 public:
-	Interpreter(string input):input(input), i(0){
-		cout << "kidding me" << endl;
-		tokens = Tokenizer(input).generate();
-		//for (auto &a : tokens) {
-		//	cout << a << endl;
-		//}
-		cout << "kidding me" << endl;
-		__load();
-		cout << "after load" << endl;
-		//showTableRecord("person");
+	Interpreter(string input){
+		if (!input.empty()) {
+			init(input);
+		}
+	}
+	Interpreter() {
 	}
 	void createIndex() {
 	//	create index idx_age on person(age);
@@ -31,6 +27,8 @@ public:
 			assertNext(";");
 		}
 	}
+	void runFile(const string& fileName);
+
 	void insert() {
 		assertNext("into");
 		auto tableName = get("char");
@@ -176,8 +174,7 @@ public:
 		::dropTable(tableName);
 	}
 	void run(const string &input) {
-		tokens = Tokenizer(input).generate();
-		i = 0;
+		init(input);
 		run();
 	}
 	void run() {
@@ -219,7 +216,10 @@ public:
 		}
 	}
 private:
-	string input;
+	void init(string input) {
+		tokens = Tokenizer(input).generate();
+		i = 0;
+	}
 	bool end() {
 		return i == tokens.size();
 	}

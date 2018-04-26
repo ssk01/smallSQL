@@ -333,6 +333,23 @@ drop table person;
 	Interpreter s(input);
 	s.run();
 }
+void time_create(string a) {
+	Interpreter i;
+	i.runFile("scripts/no_index.sql");
+}
+void time_select(string age) {
+	try {
+		Interpreter i;
+		//i.runFile("scripts/no_index.sql");
+		i.run("select * from person2 where age = "+age+";");
+		//dropTable("person");
+		//cout <<"remove "<<(dataDir + "person"+ "_" + std::to_string(0) + ".txt").c_str();
+		//showTableRecord("person");
+	}
+	catch (std::runtime_error& e) {
+		cout << e.what() << endl;
+	}
+}
 //	string input1(R"(
 //create table person(
 //	height float,
