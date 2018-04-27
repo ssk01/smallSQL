@@ -20,7 +20,6 @@ class BufferManager;
 class Block {
 public:
 	//friend class Recordlist;
-	friend void readFile(Block* newBlock);
 	friend class BufferManager;
 	const static int BLOCKSIZE = 4096;
 	void save() {
@@ -48,10 +47,14 @@ public:
 		}
 		dirty = 2;
 	}
-	Block(string name, int index) : fileName(name), blockIndex(index), offset(0), _buffer(new char[BLOCKSIZE]), dirty(1) {
+	void modify() {
+		dirty = 2;
+	}
+	Block(string name, int index) : fileName(name), blockIndex(index), offset(0), _buffer(new char[BLOCKSIZE]), dirty(0) {
 		if (_buffer == nullptr) {
 			throw InsuffcientSpace("can not new a block any more");
 		}
+		readFile();
 		LOG("block constructor", name, index);
 	}
 	char *rawPtr() {
@@ -63,6 +66,13 @@ public:
 		delete[] _buffer;
 	}
 private:
+	void readFile() {
+		std::ifstream in{ dataDir + fileName + "_" + std::to_string(blockIndex) + ".txt" };
+		if (in.is_open()) {
+			in.read(_buffer, Block::BLOCKSIZE);
+		}
+		in.close();
+	}
 	char *_buffer;
 	string fileName;
 	int blockIndex;

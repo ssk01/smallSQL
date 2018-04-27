@@ -16,5 +16,5 @@ void test_insert_memory();
 void deleteRecord();
 void test_dropTable();
 void test_deleteRecord();
-void time_select(string age);
+void time_select(int age);
 void time_create(string a);

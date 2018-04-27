@@ -229,6 +229,7 @@ public:
 		LOG("nextPos: ", nextPos.first, nextPos.second);
 		records.push_back(entry);
 		auto block = BufferManager::instance().find_or_alloc(tableName, entry.first);
+		block->modify();
 		memcpy(block->rawPtr() + entry.second * entrySize, content, entrySize);
 		return entry;
 	}

@@ -25,14 +25,7 @@ void BufferManager::save() {
 		delete b;
 	}
 }
-void readFile(Block* block) {
-	std::ifstream in{ dataDir + block->fileName +"_"+ std::to_string(block->blockIndex) + ".txt" };
-	if (in.is_open()) {
-		in.read(block->_buffer, Block::BLOCKSIZE);
-		/*CatalogManager::instance().showTableRecord(block->fileName, block->_buffer);*/
-	}
-	in.close();
-}
+
 
 Block* BufferManager::alloc_block(const std::string& fileName, int blockIndex)
 {
@@ -42,7 +35,6 @@ Block* BufferManager::alloc_block(const std::string& fileName, int blockIndex)
 
 		auto newBlock = new Block(fileName, blockIndex);
 		//readFile(newBlock);
-		readFile(newBlock);
 		blocks.push_front(newBlock);
 		return newBlock;
 	} else {
@@ -55,7 +47,6 @@ Block* BufferManager::alloc_block(const std::string& fileName, int blockIndex)
 Block* BufferManager::lruReplaceBlock(const std::string& fileName, int blockIndex) {
 	auto newBlock = new Block(fileName, blockIndex);
 	//to get index optimation
-	readFile(newBlock);
 	LOG("lru: ", fileName, blockIndex);
 	auto old = blocks.back();
 	LOG("lru replace ", old->fileName, old->blockIndex);

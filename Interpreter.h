@@ -22,10 +22,10 @@ public:
 		assertNext("(");
 		auto attrName = get("char");
 		assertNext(")");
-		addIndex(tableName, indexName, attrName);
 		if (!end()) {
 			assertNext(";");
 		}
+		addIndex(tableName, indexName, attrName);
 	}
 	void runFile(const string& fileName);
 

@@ -51,7 +51,7 @@ public:
 				show(t);
 			}
 			cout << "error:__________________" << endl;
-			cout <<"cur: " <<cur << "\t" << "c: "<< input[i] <<"\tstate: " << type[state] << "line: " << line <<"col: " << col << endl;
+			cout <<"cur: " <<cur << "\t" << "c: "<< input[i] <<"\tstate: " << type[state] << "\tline: " << line <<"col: " << col << endl;
 			exit(0);
 		};
 		auto other = [&](char c = 'a') {

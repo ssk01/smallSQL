@@ -337,11 +337,13 @@ void time_create(string a) {
 	Interpreter i;
 	i.runFile("scripts/no_index.sql");
 }
-void time_select(string age) {
+void time_select(int age) {
 	try {
 		Interpreter i;
 		//i.runFile("scripts/no_index.sql");
-		i.run("select * from person2 where age = "+age+";");
+		i.run("select * from person2 where age = " + to_string(age) + " ;");
+		//i.run("select * from person2 where age > " + to_string(age) + " and " + " age < " + to_string(age + 2) + " ;");
+
 		//dropTable("person");
 		//cout <<"remove "<<(dataDir + "person"+ "_" + std::to_string(0) + ".txt").c_str();
 		//showTableRecord("person");

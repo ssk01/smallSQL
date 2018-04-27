@@ -81,14 +81,49 @@ public:
 		}
 		return res;
 	}
-	set<Record> select(const Condition& c, T condiValue) {
+	set<Record> select(Condition c, T condiValue) {
 		set<Record> res;
 		// map upper_bound
-		for (auto r = indexs.begin(); r != indexs.end(); r++) {
-			auto key = (*r).first;
-			if (Condition::eval(c.op, key, condiValue)) {
-				//todo;
+		if (c.op == ">=" || c.op == "<=" || c.op == "=") {
+			if (indexs.find(condiValue) != indexs.end()) {
+				res.insert(indexs[condiValue]);
+			}
+			if (c.op.size() == 2) {
+				c.op = c.op.substr(0, 1);
+			}
+		}
+		if (c.op == "<") {
+			auto end = indexs.lower_bound(condiValue);
+			for (auto r = indexs.begin(); r != end; r++) {
+				auto key = (*r).first;
 				res.insert(indexs[key]);
+			}
+		}
+		else if (c.op == ">") {
+			auto beg = indexs.upper_bound(condiValue);
+			for (auto r = beg; r != indexs.end(); r++) {
+				auto key = (*r).first;
+				res.insert(indexs[key]);
+			}
+		}
+		else if (c.op == "!=") {
+			auto iter = indexs.find(condiValue);
+			if (iter != indexs.end()) {
+				for (auto r = indexs.begin(); r != iter; r++) {
+					auto key = (*r).first;
+					res.insert(indexs[key]);
+				}
+				iter++;
+				for (auto r = iter; r != indexs.end(); r++) {
+					auto key = (*r).first;
+					res.insert(indexs[key]);
+				}
+			}
+			else {
+				for (auto r = indexs.begin(); r != indexs.end(); r++) {
+					auto key = (*r).first;
+					res.insert(indexs[key]);
+				}
 			}
 		}
 		return res;
@@ -244,10 +279,10 @@ public:
 class IndexManager {
 public:
 	IndexManager(){
-		//load();
+		load();
 	}
 	~IndexManager() {
-		//save();
+		save();
 	}
 	static IndexManager& instance() {
 		static IndexManager im;

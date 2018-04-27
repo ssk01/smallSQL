@@ -19,7 +19,7 @@ int main() {
 	//test(test_deleteRecord);
 	//test(deleteRecord);
 	//deleteRecord();
-	auto timeer = [](function<void(string)> f, string age) {
+	auto timeer = [](function<void(int)> f, int age) {
 		//fstream fout("log.txt", ios::app | ios::out);
 		auto start = std::chrono::system_clock::now();
 		f(age);
@@ -32,12 +32,10 @@ int main() {
 
 	//i.run("create index age on person2(age);");
 
-	timeer(time_select, "500");
+	timeer(time_select, 500);
 	LOG("hit1");
-	timeer(time_select, "500");
+	timeer(time_select, 400);
 	LOG("hit2");
-	timeer(time_select, "500");
-	timeer(time_select, "500");
 	//try {
 
 	//}

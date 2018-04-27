@@ -3,7 +3,7 @@
 #include <set>
 #include "catalogData.h"
 #include <chrono>
-
+#include <iterator>
 using std::set;
 
 void dropIndex(const string& tableName, const string& indexName)
@@ -45,10 +45,18 @@ std::function< pair<char *, Record>()> __selectGen(const string& tableName, cons
 	});
 	//vector<char *> ByteValues;
 	if (!indexesConditon.empty()) {
-		set<pair<int, int>> matched;
+		vector<pair<int, int>> matched;
 		for (auto &c : indexesConditon) {
 			auto recs = IndexManager::instance().select(tableName, c);
-			matched.insert(recs.begin(), recs.end());
+			if (matched.empty()) {
+				matched.assign(recs.begin(),recs.end());
+			}
+			else {
+				std::vector<pair<int, int>> v_intersection;
+				std::set_intersection(matched.begin(), matched.end(), recs.begin(), recs.end(),std::back_inserter(v_intersection));
+				matched.clear();
+				matched.assign(v_intersection.begin(),v_intersection.end());
+			}
 		}
 		LOG("ccc", matched.size());
 		return RecordManager::instance().selectGen(tableName, { matched.begin(), matched.end() }, normalConditon);
