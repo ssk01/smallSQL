@@ -19,14 +19,12 @@ using std::set;
 class BufferManager;
 class Block {
 public:
-	//friend class Recordlist;
 	friend class BufferManager;
 	const static int BLOCKSIZE = 4096;
 	void save() {
 		if (dirty == 1) {
-			////cout << "save block" << endl;
-			LOG("Save block:", fileName, blockIndex);
-			std::ofstream out{ dataDir + fileName + "_" + std::to_string(blockIndex) + ".txt", std::ios::trunc };
+			LOG("Save block: dirty", fileName, blockIndex);
+			std::ofstream out{ dataPath(fileName, blockIndex), std::ios::trunc };
 			out.write(_buffer, BLOCKSIZE);
 		}
 		else if (dirty == 2) {
@@ -37,18 +35,20 @@ public:
 		}
 	}
 	void remove() {
-		std::ifstream in{ dataDir + fileName + "_" + std::to_string(blockIndex) + ".txt" };
-		if (in.is_open()) {
-			in.close();
-			std::remove((dataDir + fileName + "_" + std::to_string(blockIndex) + ".txt").c_str());
+		auto name = dataPath(fileName, blockIndex);
+	
+		if (fileExisted(name)) {
+			LOG("removes file remove", name);
+
+			std::remove(name.c_str());
 		}
 		else {
-			LOG("heeeee");
+			LOG("removes but not saved before");
 		}
 		dirty = 2;
 	}
 	void modify() {
-		dirty = 2;
+		dirty = 1;
 	}
 	Block(string name, int index) : fileName(name), blockIndex(index), offset(0), _buffer(new char[BLOCKSIZE]), dirty(0) {
 		if (_buffer == nullptr) {
@@ -67,7 +67,7 @@ public:
 	}
 private:
 	void readFile() {
-		std::ifstream in{ dataDir + fileName + "_" + std::to_string(blockIndex) + ".txt" };
+		std::ifstream in{ dataPath(fileName, blockIndex) };
 		if (in.is_open()) {
 			in.read(_buffer, Block::BLOCKSIZE);
 		}
@@ -110,17 +110,15 @@ public:
 			b++;
 			i++;
 		}
+		blocks.erase(removed, blocks.end());
 		LOG("removed num", i);
-		for (auto i : blockIndexs) {
-			std::ifstream in{ dataDir + fileName + "_" + std::to_string(i) + ".txt"};
-			if (in.is_open()) {
-				in.close();
-				LOG("drop block out ", fileName, i);
-				string file = (dataDir + fileName + "_" + std::to_string(i) + ".txt");
-			cout <<"remove "<<file<<"\t"<<std::remove(file.c_str());
+		for (auto blockIndex : blockIndexs) {
+			auto name = dataPath(fileName, blockIndex);
+			if (fileExisted(name)) {
+				LOG("removes file remove", name);
+				std::remove(name.c_str());
 			}
 		}
-		blocks.erase(removed, blocks.end());
 		LOG("amazed");
 	}
 	Block* find_or_alloc(const std::string& fileName, int blockIndex);
@@ -132,9 +130,7 @@ public:
 private:
 	void save();
 	list<Block *> blocks;
-	//const static int BlockCount = 1;
 	const  int BlockCount = 128;
-	//void read_file(const Block* block);
 	Block* alloc_block(const std::string& fileName, int blockIndex);
 	ListIter findBlock(const std::string& fileName, int blockIndex);
 	Block* lruReplaceBlock(const std::string& fileName, int blockIndex);

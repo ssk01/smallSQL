@@ -26,9 +26,4 @@ public:
 };
 
 
-
-#define log(...) 
-#define log_enum(enum_val)
-#define log_expr(expr)
-
 extern Logger LOG;

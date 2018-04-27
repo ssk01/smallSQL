@@ -30,10 +30,7 @@ public:
 		return content != c;
 	}
 	int toInt() const {
-		std::istringstream in(content);
-		int key;
-		in >> key;
-		return key;
+		return atoi(content.c_str());
 	}
 	float toFloat() const {
 		std::istringstream in(content);

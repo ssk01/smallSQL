@@ -89,12 +89,14 @@ public:
 	string indexName;
 	bool unique;
 	int size;
+	mutable int off;
 private:
 };
 
 class Table {
 public:
 	Table(const string& name, vector<Attribute>& attr) : tablename(name), attributes(attr) {
+		init();
 	}
 	friend ostream& operator<<(ostream& out, Table t) {
 		out << "tablename " << t.tablename;
@@ -103,31 +105,35 @@ public:
 		}
 		return out;
 	}
-	Table(){}
-	static Table load(const string& name) {
-		std::ifstream in{ tableInfoDir + name + ".txt" };
+	Table() {}
+	Table(const string& name) : tablename(name) { 
+		load();
+		init();
+	}
+	void load() {
+		std::ifstream in{ tableInfoPath(tablename)};
 		if (in.is_open()) {
 			string _tableName;
 			in >> _tableName;
-			assert(_tableName == name);
+			assert(_tableName == tablename);
 			int attrSize;
 			in >> attrSize;
 			vector<Attribute> attr;
 			for (int i = 0; i < attrSize; i++) {
 				attr.emplace_back(in);
 			}
-			return Table{ name, attr };
-			LOG("load table: ", name);
+			attributes = attr;
+			LOG("load table: ", tablename);
 		}
 		else {
 			LOG("load table: empty");
 		}
 	}
 	void drop() {
-		std::remove((tableInfoDir + tablename + ".txt").c_str());
+		std::remove(tableInfoPath(tablename).c_str());
 	}
 	void save() {
-		std::ofstream out{ tableInfoDir + tablename+".txt", std::ios::trunc };
+		std::ofstream out{ tableInfoPath(tablename), std::ios::trunc };
 		out.seekp(0, std::ios::beg);
 		out << tablename << "\n";
 		out << attributes.size() << "\n";
@@ -135,14 +141,7 @@ public:
 			a.serialize(out);
 		}
 
-		/*int i;
-		string name;
-		string type;
-		string indexName;
-		bool unique;
-		int size;*/
 	}
-	//todo can be do init
 	bool typeEqual(const vector<Token>& content, string& res) {
 		if (content.size() != attributes.size()) {
 			return false;
@@ -156,24 +155,8 @@ public:
 		}
 		return true;
 	}
-	int attributeOffset(int j) {
-		int off = 0;
-		for (auto i = 0; i < j; i++) {
-			auto a = attributes[i];
-			off += a.size;
-		}
-		return off;
-	}
-	int attributeOrder(const string &attrName) {
-		for (auto i = 0; i < attributes.size(); i++) {
-			if (attrName == attributes[i].name) {
-				return i;
-			}
-		}
-		string res = "Table " +tablename+" "+ attrName + "not existed";
-		throw TableError(res.c_str());
-		assert(0);
-	}
+
+
 	bool indexExisted(const string& indexName) {
 		for (auto &a : attributes) {
 			if (a.indexName == indexName) {
@@ -185,17 +168,32 @@ public:
 	void dropIndex(const string& indexName) {
 		for (auto &a : attributes) {
 			if (a.indexName == indexName) {
-				//return true;
 				a.indexName = "";
-				a.unique = false;
+				//a.unique = false;
 				return;
 			}
 		}
 	}
-	string getIndexName(int i) {
-		//assert(attributes[i].indexName != "");
-		return attributes[i].indexName;
+
+	void __attributeOffset() {
+		int off = 0;
+		for (size_t i = 0; i < attributes.size(); i++) {
+			auto& a = attributes[i];
+			a.off = off;
+			off = off + a.size;
+		}
 	}
+
+	Attribute& attribute (const string& attrName)  {
+		for (auto &a : attributes) {
+			if (a.name == attrName) {
+				return a;
+			}
+		}
+		string res(attrName + " not exist");
+		throw AttributeError(res.c_str());
+	}
+
 	bool addIndex(const string& indexName, const string& attrName) {
 		for (auto &a : attributes) {
 			if (a.name == attrName) {
@@ -205,23 +203,9 @@ public:
 		}
 		return false;
 	}
-	string attributeType(const string& attrName) {
-		for (auto &a : attributes) {
-			if (a.name == attrName) {
-				return a.type;
-			}
-		}
-	}
-	const Attribute& attribute (const string& attrName)  {
-		for (const auto &a : attributes) {
-			if (a.name == attrName) {
-				return a;
-			}
-		}
-	}
 	void showRecord(char *value) {
 		int offset = 0;
-		for (auto &attri : attributes) {
+		for (auto attri : attributes) {
 			if (attri.type == "int") {
 				int i;
 				memcpy(&i, value + offset, attri.size);
@@ -238,38 +222,30 @@ public:
 			offset += attri.size;
 		}
 	}
-	using aa = tuple<int, string, string>;
-	vector<aa> getIndexAttri() {
-		vector<tuple<int, string, string>>  res;
-		for (auto i = 0; i < attributes.size(); i++) {
+	vector<Attribute> getIndexAttr() {
+		vector<Attribute>  res;
+		for (size_t i = 0; i < attributes.size(); i++) {
 			auto a = attributes[i];
 			if (a.indexName != "") {
-				res.emplace_back(i, a.indexName, a.type);
+				res.emplace_back(a);
 			}
 		}
 		return res;
 	}
-	vector<tuple<int, bool>> getUniqueAttri() {
-		vector<tuple<int, bool>>  res;
-		for (auto i = 0; i < attributes.size(); i++) {
+	vector<Attribute> getUniqueAttri() {
+		vector<Attribute>  res;
+		for (size_t i = 0; i < attributes.size(); i++) {
 			auto a = attributes[i];
 			if (a.unique == true) {
-				res.emplace_back(i, a.indexName != "");
+				res.emplace_back(a);
 			}
 		}
 		return res;
 	}
-	//int attriValue(const vector<string>& content, int i) {
-	//	auto a = attributes[i];
-	//	auto c = content[i];
-	//	if (a.type == "int" )
-	//	a.val(c,)
-	//}
-	char* toEntry(const vector<Token>& content) {
-		char *value = new char[size()];
+
+	char* toEntry(const vector<Token>& content, char* value) {
 		int offset = 0;
-		//for (auto &a : attributes) {
-		for (auto i = 0; i < content.size(); i++) {
+		for (size_t i = 0; i < content.size(); i++) {
 			auto a = attributes[i];
 			auto c = content[i].content;
 			if (a.type != content[i].type) {
@@ -280,13 +256,9 @@ public:
 				istringstream in(c);
 				in >> v;
 				memcpy(value + offset, &v, a.size);
-	/*			int a1 = -1;
-				memcpy(&a1, value + offset, a.size);
-				cout << a1 << " " << v << endl;*/
 			}
 			else if (a.type == "char") {
 				memcpy(value + offset, c.c_str(), c.size());
-				//memcpy(value+offset)
 				memset(value + offset + c.size(), char('\0'), 1);
 			}
 			else if (a.type == "float") {
@@ -294,50 +266,29 @@ public:
 				istringstream in(c);
 				in >> v;
 				memcpy(value + offset, &v, a.size);
-	/*			cout << "float" <<v << endl;
-				sprintf(value + offset, "%f", v);
-				float i;
-				memcpy(&i, value + offset, 4);
-				cout << "\t value: " << i << endl;*/
 			}
 			offset += a.size;
 		}
 
 		return value;
 	}
-	//int intAttri(const string& content) {
-	//	auto a = attributes[i];
-	//	return a.val(content, int(0));
-	//}
-	//string charAttri(const string& content, int i) {
-	//	auto a = attributes[i];
-	//	return a.val(content, string());
-	//}
+	void init() {
+		__size();
+		__attributeOffset();;
+	}
 	int size() {
+		return entrySize;
+	}
+	void __size() {
 		int s = 0;
 		for (auto & a : attributes) {
 			s += a.size;
 		}
-		return s;
+		entrySize = s;
 	}
+	int entrySize;
 	string tablename;
 	vector<Attribute> attributes;
 };
 
 
-//char* insert(const string& name, const vector<string>& content)
-//{
-//	auto Table = getTable(name);
-//	assert(content.size() == Table.attributeNum());
-//	for (int i = 0; i < Table.attributeNum(); i++) {
-//		auto attri = Table.getAttri[i];
-//		if (attri[i].type == "int") {
-//			int ivalue;
-//			istringstream (content[i]) >> ivalue;
-//			memcpy(res + offset, &ivalue, sizeof(ivalue));
-//		}
-//	}
-//	auto result = "";
-//
-//
-//}

@@ -20,13 +20,7 @@ public:
 		}
 		return names;
 	}
-	int attributeOffset(const string& name, int i) {
-		return nameTables[name].attributeOffset(i);
-	}
 
-	int attributeOrder(const string& name, const string& attrName) {
-		return nameTables[name].attributeOrder(attrName);
-	}
 	const Attribute& attribute(const string& name, const string& attrName) {
 		return nameTables[name].attribute(attrName);
 		
@@ -41,9 +35,6 @@ public:
 		nameTables[name].drop();
 		nameTables.erase(name);
 	}
-	string attributeType(const string& name, const string& attrName) {
-		return nameTables[name].attributeType(attrName);
-	}
 	void showTableRecord(const string& name, char *value) {
 		//cout <<"ttt" << *(int*)value << endl;
 		cout << "Table: " + name << endl;
@@ -56,33 +47,22 @@ public:
 			throw IndexError(res.c_str());
 		}
 	}
-	//void showTableRecord(const string& name) {
-	//	return nameTables[name].showRecord();
-	//}
-	char * toEntry(const string& name, const vector<Token>& content) {
-		return nameTables[name].toEntry(content);
+
+	char * toEntry(const string& name, const vector<Token>& content, char* value) {
+		return nameTables[name].toEntry(content,value);
 	}
 	int getEntrySize(const string& name) {
 		return nameTables[name].size();
 	}
-	//pair<string, int> getIndexName(const string& name) {
 
-	//}
-	string getIndexName(const string& name, int i) {
-		return nameTables[name].getIndexName(i);
-	}
-	//bool isIndex(const string& name, int i) {
-	//	return nameTables[name].isIndex(i);
-	//}
-	vector<tuple<int, bool>> getUniqueAttri(const string& name) {
+	vector<Attribute> getUniqueAttri(const string& name) {
 		return nameTables[name].getUniqueAttri();
 	}
 	void dropIndex(const string& name, const string& indexName) {
 		nameTables[name].dropIndex(indexName);
 	}
-	using aa = tuple<int, string, string>;
-	vector<aa> getIndexAttri(const string& name) {
-		return nameTables[name].getIndexAttri();
+	vector<Attribute> getIndexAttr(const string& name) {
+		return nameTables[name].getIndexAttr();
 	}
 	void assertTypeEqual(const string& name, const vector<Token>& content) {
 		string res;
@@ -134,7 +114,7 @@ private:
 		load();
 	}
 	void save() {
-		std::ofstream out{ catalogDataDir + "tablename.txt", std::ios::trunc };
+		std::ofstream out{ catalogDataPath(), std::ios::trunc };
 		out << nameTables.size() << endl;
 		for (auto value : nameTables) {
 			out << value.first << "\n";
@@ -143,31 +123,24 @@ private:
 		}
 	}
 	void load() {
-		std::ifstream in{ catalogDataDir + "tablename.txt" };
+		std::ifstream in{ catalogDataPath() };
 		if (in.is_open()) {
 			size_t size;
 			in >> size;
 			string tableName;
 			while (size--> 0) {
 				in >> tableName;
-				auto table = Table::load(tableName);
+				auto table = Table(tableName);
 				nameTables[tableName] = table;
 				LOG("load catalogData: table attributes size", table.attributes.size());
-				//cout << table.attributes.size();
 			}
-			/*cout << "after load " << endl;
-			for (auto value : nameTables) {
-				cout << value.first << "\n";
-				cout << value.second << endl;
-			}*/
+
 		}
 		else {
-			//cout << "not open catalogData" << endl;
 			LOG("load catalogData: empty");
 		}
 
 	}
 	map<string, Table> nameTables;
-	//map<string, set<string>> intIndex;
-	//map<string, set<string>> stringIndex;
+
 };

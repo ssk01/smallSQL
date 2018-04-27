@@ -16,6 +16,22 @@ public:
 	{
 	}
 };
+class ConditionError : public std::runtime_error
+{
+public:
+	explicit ConditionError(const char* msg)
+		: std::runtime_error(("Condition error: " + std::string(msg)).c_str())
+	{
+	}
+};
+class AttributeError : public std::runtime_error
+{
+public:
+	explicit AttributeError(const char* msg)
+		: std::runtime_error(("Attribute error: " + std::string(msg)).c_str())
+	{
+	}
+};
 class PraserError : public std::runtime_error
 {
 public:
@@ -49,4 +65,3 @@ public:
 	}
 };
 
-#define fck() do {cout<<"fuck123"<<endl; exit(0);}while(0)

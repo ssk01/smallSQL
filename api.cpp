@@ -43,7 +43,6 @@ std::function< pair<char *, Record>()> __selectGen(const string& tableName, cons
 			normalConditon.push_back(c);
 		}
 	});
-	//vector<char *> ByteValues;
 	if (!indexesConditon.empty()) {
 		vector<pair<int, int>> matched;
 		for (auto &c : indexesConditon) {
@@ -58,7 +57,7 @@ std::function< pair<char *, Record>()> __selectGen(const string& tableName, cons
 				matched.assign(v_intersection.begin(),v_intersection.end());
 			}
 		}
-		LOG("ccc", matched.size());
+		LOG("index records", matched.size(),"normal cond", normalConditon.size());
 		return RecordManager::instance().selectGen(tableName, { matched.begin(), matched.end() }, normalConditon);
 	}
 	//no indexes;
@@ -86,23 +85,25 @@ void addIndex(const string& tableName, const string& indexName, const string& at
 
 void selects(const string& tableName, const vector<Condition>& conds) {
 	auto selected = __selectGen(tableName, conds);
-	//auto byteValues = selected.first;
 	auto start = std::chrono::system_clock::now();
 	auto s = selected();
+	cout << "select result:" << endl;
+	int i = 0;
 	while (s.first != nullptr) {
 		auto record = s.second;
 		auto v = s.first;
 		CatalogManager::instance().showTableRecord(tableName, v);
 		s = selected();
+		i += 1;
 	}
 	auto end = std::chrono::system_clock::now();
 	std::chrono::duration<double> elapsed_seconds = end - start;
 	cout << "selct time: " << elapsed_seconds.count() << "s\n";
-	cout << "select result:" << endl;
+	cout << "total results num: " << i << endl;
+
 }
 void deleteRecords(const string& tableName, const vector<Condition>& conds) {
 	auto selected = __selectGen(tableName, conds);
-	//auto byteValues = selected.first;
 	vector<Record> entrys;
 	auto s = selected();
 	while (s.first != nullptr) {
@@ -114,8 +115,7 @@ void deleteRecords(const string& tableName, const vector<Condition>& conds) {
 	for (auto entry : entrys) {
 		RecordManager::instance().deleteRecord(tableName, entry);
 	}
-
-
+	cout << "delete num: " << entrys.size() << endl;
 }
 
 
@@ -125,18 +125,16 @@ void insertRecord(const string &name, const vector<Token>& content) {
 	CatalogManager::instance().assertExisted(name);
 	CatalogManager::instance().assertTypeEqual(name, content);
 	for (auto uniqueAttr : CatalogManager::instance().getUniqueAttri(name)) {
-		auto i = std::get<0>(uniqueAttr);
-		auto hasIndex = std::get<1>(uniqueAttr);
-		if (hasIndex) {
-			auto indexName = CatalogManager::instance().getIndexName(name, i);
+		auto i = uniqueAttr.i;
+		auto indexName = uniqueAttr.indexName;
+		if (indexName != "") {
 			if (IndexManager::instance().indexRecordExisted(name, indexName, content[i])) {
-				//"fuck"
 				string res("unique> tablename: " + name + " indexName +" + indexName + "  " + content[i].str()+ "already existed");
 				throw InsertError(res.c_str());
 			};
 		}
 		else {
-			auto offset = CatalogManager::instance().attributeOffset(name, i);
+			auto offset = uniqueAttr.off;
 			if (RecordManager::instance().recordExist(name, content[i], i, offset)) {
 				cout << "fuck" << endl;
 				string res("unique> tablename: " + name  +" " +content[i].str() + "  already existed");
@@ -145,27 +143,22 @@ void insertRecord(const string &name, const vector<Token>& content) {
 
 		}
 	}
-	auto value = CatalogManager::instance().toEntry(name, content);
-
-	auto record = RecordManager::instance().insertRecord(name, value);
-	for (auto indexAttri : CatalogManager::instance().getIndexAttri(name)) {
+	//auto value = 
+	auto record = RecordManager::instance().insertRecord(name, content);
+	//delete value;
+	for (auto attr : CatalogManager::instance().getIndexAttr(name)) {
 		cout << "indexs record " << endl;
-		auto i = std::get<0>(indexAttri);
-		auto indexName = std::get<1>(indexAttri);
-		auto type = std::get<2>(indexAttri);
-		/*auto key = CatalogManager::instance().intAttri(name, content, i);*/
+		auto i = attr.i;
+		auto indexName = attr.indexName;
 		IndexManager::instance().insertIndex(name, indexName, content[i], record);
 	}
 }
 void showTableRecord(const string &name) {
-	//CatalogManager::instance().
 	CatalogManager::instance().assertExisted(name);
 
-	auto values = RecordManager::instance().showReocrd(name);
 	cout << "show  table record table :" + name << endl;
-	//for (auto &value : values) {
-	//	CatalogManager::instance().showTableRecord(name, value);
-	//}
+	RecordManager::instance().showReocrd(name);
+
 	cout << "\n" << endl;
 }
 void showIndex(const string& tableName, const string& indexName) {

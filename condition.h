@@ -10,8 +10,13 @@ class Condition {
 	};
 public:
 	void init(const string& tableName) const {
-		i = CatalogManager::instance().attributeOrder(tableName, attriName);
-		indexName = CatalogManager::instance().attribute(tableName, attriName).indexName;
+		auto attr = CatalogManager::instance().attribute(tableName, attriName);
+		if (attr.type != token.type) {
+			string res("not existed: " + str());
+			throw ConditionError(res.c_str());
+		}
+		i = attr.i;
+		indexName = attr.indexName;
 	}
 	string str() const {
 		std::ostringstream out;

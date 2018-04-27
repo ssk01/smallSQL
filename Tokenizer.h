@@ -17,8 +17,8 @@ class Tokenizer {
 	State state;
 	string cur;
 	int line;
+	size_t i = 0;
 	int col;
-	//int	i = 0;
 	void add_colon() {
 		tokens.push_back(Token(cur, line, col));
 		cur = "";
@@ -38,7 +38,6 @@ class Tokenizer {
 		i += 1;
 		col++;
 	}
-	int i = 0;
 
 public:
 	Tokenizer(const string& input) :input(input), state(None), line(1), col(1){
@@ -105,9 +104,7 @@ public:
 				}
 				break;
 			case SingeQuote:
-				if (other(c)) {
-					assert(cur.empty());
-				} else if (c == '\'') {
+				 if (c == '\'') {
 					skip();
 					add("char");
 				}
@@ -116,10 +113,7 @@ public:
 				}
 				break;
 			case DoubleQute:
-				if (other(c)) {
-					assert(cur.empty());
-				}
-				else if (c == '"') {
+				if (c == '"') {
 					skip();
 					add("char");
 				}
@@ -167,8 +161,12 @@ public:
 			}
 		}
 		if (cur.size() > 0) {
-			//add("state");
-			other();
+			if (state == Char || state == Int || state == Float ) {
+				add(type[state]);
+			}
+			else {
+				error();
+			}
 		}
 		return tokens;
 	}

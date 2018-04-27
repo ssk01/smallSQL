@@ -29,31 +29,31 @@ int main() {
 	};
 	//timeer(time_create, "");
 	Interpreter i;
+	//timeer(time_select, 1110);
 
-	//i.run("create index age on person2(age);");
 
-	timeer(time_select, 500);
+	//i.run("");
+	//i.run("drop index age on person2;");
+	//i.run("drop table person2");
+	//showTableRecord("person2");
+
+	i.run("select * from person2  where age = 24;");
+	i.run("select * from person2  where age = 25;");
+	i.run("select * from person2  where age = 26;");
+	//i.run("delete from person where age = 32;");
+	//i.run("select * from person2  where age = 32;");
+
+	//i.runFile("scripts/no_index.sql");
+	
+	cout << "before" << endl;
 	LOG("hit1");
-	timeer(time_select, 400);
-	LOG("hit2");
-	//try {
+	//i.run("create index age on person2(age);");
+	//i.run("delete from person2 where age = 500");
 
-	//}
-	//catch (std::runtime_error& e) {
-	//	cout << e.what() << endl;
-	//}
-	/*string a("bbb");
-	string a1("bbc");
-	string a12("bbc");
-	std::fstream in{ string("tableInfo/") + "3" + ".txt",std::ios::trunc|std::ios::in|std::ios::out };
-	in << a;
-	in << a1;
-	in.seekp(0);
-	string b;
-	string b1;
-	in >> b;
-	in >> b1;
-	cout << b  << "¡¡¡¡¡¡" << b1;*/
+	//i.run(input1);
+	//timeer(time_select, 499);
+
+	LOG("hit2");
 
 
 //test unique

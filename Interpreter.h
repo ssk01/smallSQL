@@ -14,8 +14,7 @@ public:
 	Interpreter() {
 	}
 	void createIndex() {
-	//	create index idx_age on person(age);
-	//void addIndex(const string& tableName, const string& indexName, const string& attrName)
+		//	create index idx_age on person(age);
 		auto indexName = get("char");
 		assertNext("on");
 		auto tableName = get("char");
@@ -28,7 +27,6 @@ public:
 		addIndex(tableName, indexName, attrName);
 	}
 	void runFile(const string& fileName);
-
 	void insert() {
 		assertNext("into");
 		auto tableName = get("char");
@@ -68,7 +66,6 @@ public:
 			}
 			attrs.emplace_back(name, type, idx,size, ifunique);
 			idx++;
-			//bug
 			if (peek(")")) {
 				break;
 			}
@@ -78,9 +75,6 @@ public:
 			assertNext(";");
 		}
 		addTable(tableName, attrs);
-		//for (auto &a : attrs) {
-		//	cout << a << endl;
-		//}
 	}
 	void deleteRecord() {
 		//DELETE FROM Person WHERE LastName = 'Wilson'
@@ -149,9 +143,6 @@ public:
 					assertNext("and");
 				}
 			}
-			/*for (const auto& c : conds){
-				cout << c << endl;
-			}*/
 			selects(tableName, conds);
 
 		}
@@ -248,10 +239,6 @@ private:
 		}
 		cout << "assert:  " << type <<"== " << peek() << endl;
 		exit(11);
-
-	/*	for (auto j = 0; j < tokens.size(); j++) {
-			cout << tokens[i] << endl;
-		}*/
 	}
 	Token get() {
 		i += 1;

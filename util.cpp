@@ -19,6 +19,15 @@ const std::string tableInfoDir = "db/tableInfo/";
 const std::string dataDir = "db/data/";
 const std::string indexDir = "db/index/";
 const std::string indexInfoDir = "db/indexInfo/";
+string recordlistPath(const string& tableName) {
+	return recordlistDir + tableName + ".txt";
+}
+string dataPath(const string& tableName, int blockIndex) {
+	return dataDir + tableName + "_" + std::to_string(blockIndex) + ".txt";
+}
+string tableInfoPath(const string& tableName) {
+	return tableInfoDir + tableName + ".txt";
+}
 string catalogDataPath() {
 	return catalogDataDir + "tablename.txt";
 }

@@ -5,21 +5,12 @@
 using std::string;
 int Int(char *value);
 float Float(char *value);
-//class InsuffcientSpace : public std::runtime_error
-//{
-//public:
-//	explicit InsuffcientSpace(const char* msg)
-//		: std::runtime_error(("not enough space: " + std::string(msg)).c_str())
-//	{
-//	}
-//};
 
-extern const  std::string recordlistDir;
-extern const  std::string catalogDataDir;
-extern const  std::string tableInfoDir;
-extern const  std::string dataDir;
-extern const std::string  indexDir;
+string recordlistPath(const string& tableName);
+string tableInfoPath(const string& tableName);
+string dataPath(const string& tableName, int blockIndex);
 std::string indexPath(const string& tableName, const string& indexName);
 std::string indexInfoPath(const string& tableName);
 string catalogDataPath();
 void tryRemove(const string& tableName);
+bool fileExisted(const string& tableName);

@@ -6,7 +6,6 @@ void Interpreter::runFile(const string& fileName) {
 		throw FileError(fileName.c_str());
 	}
 	string input;
-	//auto c = in.get()
 	char c;
 	while ((c = in.get()) != EOF) {
 		input.push_back(c);

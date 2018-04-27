@@ -4,6 +4,7 @@
 #include "condition.h"
 #include <set>
 #include <assert.h>
+#include <string>
 using std::set;
 using Record = pair<int, int>;
 using Records = vector<Record>;
@@ -11,7 +12,6 @@ using Records = vector<Record>;
 template<class T>
 class Index {
 public:
-	/*Index(const string& tableName):tableName(tableName) {}*/
 	Index() {}
 	Index(const string& tableName, const string& indexName)  {
 		load(tableName, indexName);
@@ -19,7 +19,6 @@ public:
 	void load(const string& tableName, const string& indexName) {
 		std::ifstream in{ indexPath(tableName, indexName )};
 		if (!in.is_open()) {
-			//fck();
 			LOG("index load error", tableName, indexName);
 		}
 		size_t size = 0;
@@ -33,7 +32,6 @@ public:
 			indexs[key] = rec;
 		}
 	}
-	//tableName
 	void save(const string& tableName, const string& indexName) {
 		std::ofstream out{ indexPath(tableName, indexName), std::ios::trunc };
 		out << indexs.size() << "\n";
@@ -43,7 +41,6 @@ public:
 		}
 	}
 	void insertIndex(T key, RecordList::Record record) {
-		//assert();
 		indexs[key] = record;
 	}
 	void showIndex() {
@@ -67,23 +64,14 @@ public:
 			indexs.erase(key);
 			return;
 		}
-		//exit(0);
-		fck();
+		string res("no record existed ");
+		LOG("no record existed ", key);
+
+		throw IndexError(res.c_str());
 	}
-	set<Record> deleteRecords(const Condition& c, T condiValue) {
-		set<Record> res;
-		for (auto r = indexs.begin(); r != indexs.end(); r++) {
-			auto key = (*r).first;
-			if (Condition::eval(c.op, key, condiValue)) {
-				//continue;
-				res.insert(indexs[key]);
-			}
-		}
-		return res;
-	}
+
 	set<Record> select(Condition c, T condiValue) {
 		set<Record> res;
-		// map upper_bound
 		if (c.op == ">=" || c.op == "<=" || c.op == "=") {
 			if (indexs.find(condiValue) != indexs.end()) {
 				res.insert(indexs[condiValue]);
@@ -132,10 +120,8 @@ private:
 	map<T, RecordList::Record> indexs;
 	string tableName;
 	string indexName;
-	//int i;
 };
 class Indexs {
-	//string tableName;
 	map<string, Index<int>> intIndex;
 	map<string, Index<string>> charIndex;
 	map<string, Index<float>> floatIndex;
@@ -164,7 +150,6 @@ public:
 		}
 	}
 	Indexs() {};
-	//Indexs(const string& tablName): {};
 	void save(const string& tableName) {
 		std::ofstream out{ indexInfoPath(tableName), std::ios::trunc };
 		out << tableName << "\n";
@@ -216,9 +201,7 @@ public:
 			cout << "first time, not load table: " + tableName << endl;
 		}
 	}
-	//Indexs(const string& tableName):tableName(tableName) {
-		//load();
-	//};
+
 
 	~Indexs() {
 		cout << "index deconstruct" << endl;
@@ -235,15 +218,12 @@ public:
 		}
 	}
 	void insertIndex(const string& indexName, float key, RecordList::Record record) {
-		//assert();
 		floatIndex[indexName].insertIndex(key, record);
 	}
 	void insertIndex(const string& indexName, int key, RecordList::Record record) {
-		//assert();
 		intIndex[indexName].insertIndex(key, record);
 	}	
 	void insertIndex(const string& indexName, string key, RecordList::Record record) {
-		//assert();
 		charIndex[indexName].insertIndex(key, record);
 	}
 	void showIndex(const string& indexName) {
@@ -254,7 +234,6 @@ public:
 			charIndex[indexName].showIndex();
 		}
 	}
-	//template<class T>
 	set<Record> select(const string& indexName, const Condition& c) {
 		if (intIndex.find(indexName) != intIndex.end()) {
 			return intIndex[indexName].select(c, c.token.toInt());
@@ -310,10 +289,9 @@ public:
 			cout << "not open catalogData" << endl;
 		}
 	}
-	// add index prev added record;
 	void addIndex(const string& name, const string& indexName, const string& attrName, char* value, const Record & record) {
 		auto attribute = CatalogManager::instance().attribute(name, attrName);
-		auto offset = CatalogManager::instance().attributeOffset(name, attribute.i);
+		auto offset = attribute.off;
 		auto type = attribute.type;
 			if (type == "int") {
 				int val = Int(value + offset);
@@ -327,7 +305,6 @@ public:
 				float val = Float(value + offset);
 				nameIndexs[name].insertIndex(indexName, val, record);
 			}
-		//}
 	}
 	void dropIndex(const string& name, const string& indexName) {
 		nameIndexs[name].dropIndex(name,indexName);
@@ -351,11 +328,11 @@ public:
 		}
 	}
 	void deleteIndexReocrd(const string& tableName,  char *value) {
-		for (auto _index : CatalogManager::instance().getIndexAttri(tableName)) {
-			auto i = std::get<0>(_index);
-			auto indexName = std::get<1>(_index);
-			auto type = std::get<2>(_index);
-			auto offset = CatalogManager::instance().attributeOffset(tableName, i);
+		for (auto attr : CatalogManager::instance().getIndexAttr(tableName)) {
+			auto i = attr.i;
+			auto indexName = attr.indexName;
+			auto type = attr.type;
+			auto offset = attr.off;
 			if (type == "int") {
 				int val = Int(value + offset);
 				nameIndexs[tableName].deleteIndexReocrd(indexName, val);

@@ -26,8 +26,7 @@ public:
 		LOG("recordlist deconstruct");
 	}
 	void load() {
-		std::ifstream in{ recordlistDir + tableName + ".txt" };
-		//assert(name == tableName);
+		std::ifstream in{ recordlistPath(tableName)};
 		if (in.is_open()) {
 			LOG("recordlist load ");
 			in >> tableName;
@@ -37,7 +36,6 @@ public:
 			size_t size;
 			in >> size;
 			LOG("load record size", size);
-			//records.resize(size);
 			for (size_t i = 0; i < size; i++) {
 				Record r;
 				in >> r.first;
@@ -59,7 +57,7 @@ public:
 
 	}
 	void save() {
-		std::ofstream out{ recordlistDir + tableName + ".txt", std::ios::trunc };
+		std::ofstream out{ recordlistPath(tableName), std::ios::trunc };
 		out << tableName << " ";
 		out << entrySize << " ";
 		out << nextPos.first << " ";
@@ -77,7 +75,7 @@ public:
 		}
 	}
 	set<int> drop() {
-		std::remove((recordlistDir + tableName + ".txt").c_str());
+		std::remove(recordlistPath(tableName).c_str());
 		set<int> blockIndexs;
 		for (auto r : records) {
 			blockIndexs.emplace(r.first);
@@ -92,27 +90,21 @@ public:
 	RecordList(const string &tablename) : tableName(tablename) {
 		load();
 	}
-	vector<char *> showAllReocrd() {
-		vector<char *> res;
+	void showAllReocrd() {
+		cout << "show records size: " << records.size() << endl;
 		for (auto &entry : records) {
-			//todo
-			//char *value = new char[entrySize+1];	
 			auto block = BufferManager::instance().find_or_alloc(tableName, entry.first);
-			//memcpy(value, block->rawPtr() + entry.second * entrySize, entrySize);
 			char *value = block->rawPtr() + entry.second * entrySize;
 			CatalogManager::instance().showTableRecord(tableName, value);
-			//res.push_back(value)/*;*/
 		}
-		return res;
 	}
 
-	int i = 0;
+	size_t i = 0;
 	std::function< pair<char *, Record>()> selectGen(const vector<Record> &recs, const vector<Condition>& conds) {
-		cout <<"size :"<< recs.size() << endl;
+		//cout <<"size :"<< recs.size() << endl;
 		auto f = [this, recs,  conds]() ->pair<char *, Record>{
-			cout << "size :" << recs.size() <<"i "<< i << "  "<<conds.size()<< endl;
+		/*	cout << "size :" << recs.size() <<"i "<< i << "  "<<conds.size()<< endl;*/
 			while (i < recs.size()) {
-					//todo it must be find
 				auto entry = recs[i];
 				i++;
 				LOG("select block get ", entry.first, entry.second);
@@ -123,7 +115,7 @@ public:
 
 				int condTure = 0;
 				for (auto &c : conds) {
-					auto off = CatalogManager::instance().attributeOffset(tableName, c.i);
+					auto off = CatalogManager::instance().attribute(tableName, c.attriName).off;
 					if (c.token.type == "int") {
 						auto val = Int(byteValue + off);
 						if (Condition::eval(c.op, val, c.token.toInt())) {
@@ -152,8 +144,6 @@ public:
 						}
 					}
 				}
-				//records.remove(entry);
-				//records.push_front(entry);
 				if (condTure == conds.size()) {
 					LOG("success ", entry.first, entry.second);
 					return{ byteValue, entry };
@@ -173,8 +163,6 @@ public:
 	bool recordExist(const Token& content, int i, int offset) {
 		char *byteValue;
 		for (auto &entry : records) {
-
-			//todo it must be find
 			auto block = BufferManager::instance().find_or_alloc(tableName, entry.first);
 			byteValue = block->rawPtr() + entry.second * entrySize;
 			if (content.type == "int") {
@@ -205,7 +193,7 @@ public:
 		records.remove(entry);
 		free_records.push_back(entry);
 	}
-	Record insertRecord(char *content) {
+	Record insertRecord(const vector<Token>&content) {
 		Record entry;
 		LOG("nextPos: ", nextPos.first, nextPos.second);
 
@@ -213,8 +201,6 @@ public:
 			entry = free_records.back();
 			free_records.pop_back();
 			LOG("get entry from free_record");
-			//cout << "fuck" << endl;
-			//exit(0);
 		} else {
 			entry = nextPos;
 			auto add = [&]() {
@@ -230,13 +216,12 @@ public:
 		records.push_back(entry);
 		auto block = BufferManager::instance().find_or_alloc(tableName, entry.first);
 		block->modify();
-		memcpy(block->rawPtr() + entry.second * entrySize, content, entrySize);
+		CatalogManager::instance().toEntry(tableName, content, block->rawPtr() + entry.second * entrySize);
 		return entry;
 	}
 
 private:
-	// blockindex and numRecord in block
-	
+	// blockindex and numRecord in block	
 	string tableName;
 	list<Record> records;
 	//list<Record> hot_records;
@@ -270,10 +255,10 @@ public:
 		tableInfos.erase(name);
 		return blockIndexs;
 	}
-	RecordList::Record insertRecord(const string &name, char *content) {
+	RecordList::Record insertRecord(const string &name, const vector<Token>&content) {
 		return tableInfos[name].insertRecord(content);
 	}
-	vector<char *>  showReocrd(const string &name) {
+	void  showReocrd(const string &name) {
 		return tableInfos[name].showAllReocrd();
 	}
 	bool recordExist(const string &name, const Token& content, int i, int offset) {
@@ -284,7 +269,7 @@ public:
 	};
 private:
 	void load() {
-		std::ifstream in{ catalogDataDir + "tablename.txt" };
+		std::ifstream in{ catalogDataPath() };
 		if (in.is_open()) {
 			size_t size;
 			in >> size;
