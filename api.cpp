@@ -27,7 +27,7 @@ void addTable(const string& name, vector<Attribute>& attr) {
 	RecordManager::instance().createTable(name, CatalogManager::instance().getEntrySize(name));
 }
 
-std::function< pair<char *, Record>()> __selectGen(const string& tableName, const vector<Condition>& conds) {
+std::function< BlockPtr()> __selectGen(const string& tableName, const vector<Condition>& conds) {
 	CatalogManager::instance().assertExisted(tableName);
 	for (const auto &c : conds) {
 		c.init(tableName);
@@ -45,14 +45,21 @@ std::function< pair<char *, Record>()> __selectGen(const string& tableName, cons
 	});
 	if (!indexesConditon.empty()) {
 		vector<pair<int, int>> matched;
+		auto first = true;
 		for (auto &c : indexesConditon) {
 			auto recs = IndexManager::instance().select(tableName, c);
-			if (matched.empty()) {
+			if (first) {
+				first = false;
 				matched.assign(recs.begin(),recs.end());
 			}
 			else {
 				std::vector<pair<int, int>> v_intersection;
 				std::set_intersection(matched.begin(), matched.end(), recs.begin(), recs.end(),std::back_inserter(v_intersection));
+				//todo
+				if (v_intersection.empty()) {
+					matched.clear();
+					break;
+				}
 				matched.clear();
 				matched.assign(v_intersection.begin(),v_intersection.end());
 			}
@@ -74,9 +81,9 @@ void addIndex(const string& tableName, const string& indexName, const string& at
 	//assert it must be unique on attrName;
 	auto selected = __selectGen(tableName, {});
 	auto s = selected();
-	while (s.first != nullptr) {
-		auto record = s.second;
-		auto v = s.first;
+	while (s.valid()) {
+		auto record = s.entry;
+		auto v = s.value;
 		IndexManager::instance().addIndex(tableName, indexName, attrName, v, record);
 		s = selected();
 	}
@@ -89,9 +96,9 @@ void selects(const string& tableName, const vector<Condition>& conds) {
 	auto s = selected();
 	cout << "select result:" << endl;
 	int i = 0;
-	while (s.first != nullptr) {
-		auto record = s.second;
-		auto v = s.first;
+	while (s.valid()) {
+		auto record = s.entry;
+		auto v = s.value;
 		CatalogManager::instance().showTableRecord(tableName, v);
 		s = selected();
 		i += 1;
@@ -106,9 +113,10 @@ void deleteRecords(const string& tableName, const vector<Condition>& conds) {
 	auto selected = __selectGen(tableName, conds);
 	vector<Record> entrys;
 	auto s = selected();
-	while (s.first != nullptr) {
-		auto v = s.first;
-		entrys.emplace_back(s.second);
+	while (s.valid()) {
+		auto record = s.entry;
+		auto v = s.value;
+		entrys.emplace_back(record);
 		IndexManager::instance().deleteIndexReocrd(tableName, v);
 		s = selected();
 	}
@@ -118,7 +126,43 @@ void deleteRecords(const string& tableName, const vector<Condition>& conds) {
 	cout << "delete num: " << entrys.size() << endl;
 }
 
-
+void update(const string& tableName, vector<Condition>&  contentconds, vector<Condition>&  conds) {
+	// no energy to do this¡£ 
+	// it's dirty. I would like to do something else;
+	//auto selected = __selectGen(tableName, conds);
+	//for (auto & c : contentconds) {
+	//	c.init(tableName);
+	//}
+	//auto indexesConditon = vector<Condition>();
+	//auto normalConditon = vector<Condition>();
+	//std::for_each(conds.begin(), conds.end(), [&](const Condition & c) {
+	//	if (c.indexName != "") {
+	//		indexesConditon.push_back(c);
+	//	}
+	//	else {
+	//		normalConditon.push_back(c);
+	//	}
+	//});
+	//vector<Record> entrys;
+	//auto s = selected();
+	//while (s.valid()) {
+	//	auto record = s.entry;
+	//	auto v = s.value;
+	//	entrys.emplace_back(record);
+	//	if (!indexesConditon.empty()) {
+	//		for (auto c : indexesConditon) {
+	//			IndexManager::instance().update(tableName, c.indexName, c.attriName, v, c.token);
+	//		}
+	//	}
+	//	for (auto c : contentconds) {
+	//		auto attribute = CatalogManager::instance().attribute(tableName, c.attriName);
+	//		auto offset = attribute.off;
+	//	CatalogManager::instance().update
+	//	(tableName, v+offset, c.token);
+	//	}
+	//	s = selected();
+	//}
+}
 
 
 void insertRecord(const string &name, const vector<Token>& content) {
@@ -135,7 +179,7 @@ void insertRecord(const string &name, const vector<Token>& content) {
 		}
 		else {
 			auto offset = uniqueAttr.off;
-			if (RecordManager::instance().recordExist(name, content[i], i, offset)) {
+			if (RecordManager::instance().recordExist(name, content[i], offset)) {
 				cout << "fuck" << endl;
 				string res("unique> tablename: " + name  +" " +content[i].str() + "  already existed");
 				throw InsertError(res.c_str());

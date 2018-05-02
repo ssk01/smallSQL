@@ -16,6 +16,7 @@ using std::endl;
 using std::list;
 using std::string;
 using std::set;
+using Record = std::pair<int, int>;
 class BufferManager;
 class Block {
 public:
@@ -24,8 +25,9 @@ public:
 	void save() {
 		if (dirty == 1) {
 			LOG("Save block: dirty", fileName, blockIndex);
-			std::ofstream out{ dataPath(fileName, blockIndex), std::ios::trunc };
+			std::ofstream out{ dataPath(fileName, blockIndex), std::ios::trunc | std::ios::binary };
 			out.write(_buffer, BLOCKSIZE);
+
 		}
 		else if (dirty == 2) {
 			LOG("save block: remove");
@@ -36,10 +38,8 @@ public:
 	}
 	void remove() {
 		auto name = dataPath(fileName, blockIndex);
-	
 		if (fileExisted(name)) {
 			LOG("removes file remove", name);
-
 			std::remove(name.c_str());
 		}
 		else {
@@ -54,6 +54,7 @@ public:
 		if (_buffer == nullptr) {
 			throw InsuffcientSpace("can not new a block any more");
 		}
+		memset(_buffer, 0, sizeof(_buffer));
 		readFile();
 		LOG("block constructor", name, index);
 	}
@@ -69,7 +70,7 @@ private:
 	void readFile() {
 		std::ifstream in{ dataPath(fileName, blockIndex) };
 		if (in.is_open()) {
-			in.read(_buffer, Block::BLOCKSIZE);
+			in.read(_buffer, BLOCKSIZE);
 		}
 		in.close();
 	}
@@ -79,7 +80,22 @@ private:
 	int offset;
 	int dirty;
 };
+class BlockPtr {
+public:
+	BlockPtr(Block* block, Record e, char* value) :entry(e), block(block), value(value){
+	}
 
+	bool valid() {
+		return block != nullptr;
+	}
+	void modify() {
+		block->modify();
+	}
+	char * value;
+	Record entry;
+private:
+	Block * block;
+};
 
 class BufferManager {
 public:
@@ -90,14 +106,10 @@ public:
 		return instance;
 	}
 	void dropTable(const std::string& fileName, const set<int> &blockIndexs) {
-		cout << "b__" << endl;
-		for (auto b : blocks) {
-			cout << b->fileName << endl;
-		}
-		cout << "b__" << blocks.size();
+		cout << "drop__" << blocks.size();
 		auto removed = std::remove_if(blocks.begin(), blocks.end(), [&](const auto &b) {
 			if (b->fileName == fileName) {
-				LOG("drop block, ", fileName);
+				LOG("drop table  block, ", fileName);
 				b->remove();
 				return true;
 			}

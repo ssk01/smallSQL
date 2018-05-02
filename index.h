@@ -13,8 +13,24 @@ template<class T>
 class Index {
 public:
 	Index() {}
+	~Index() {
+		cout << "~Index" << endl;
+	}
 	Index(const string& tableName, const string& indexName)  {
 		load(tableName, indexName);
+	}
+	void update(T old, T update) {
+		if (recordExisted(old) && !recordExisted(update)) {
+			//indexs.erase(key);
+			auto entry = indexs[old];
+			indexs.erase(old);
+			indexs[update] = entry;
+			return;
+		}
+		string res("during update key error");
+		LOG("during update key error ", old, update);
+
+		throw IndexError(res.c_str());
 	}
 	void load(const string& tableName, const string& indexName) {
 		std::ifstream in{ indexPath(tableName, indexName )};
@@ -60,7 +76,7 @@ public:
 		return false;
 	}
 	void deleteIndexReocrd(T key) {
-		if (indexs.find(key) != indexs.end()) {
+		if (recordExisted(key)) {
 			indexs.erase(key);
 			return;
 		}
@@ -254,6 +270,15 @@ public:
 	void deleteIndexReocrd(const string& indexName, string value) {
 		charIndex[indexName].deleteIndexReocrd(value);
 	}
+	void update(const string& indexName, int old, int update) {
+		intIndex[indexName].update(old, update);
+	}
+	void update(const string& indexName, float old, float update) {
+		floatIndex[indexName].update(old, update);
+	}
+	void update(const string& indexName, string old, string update) {
+		charIndex[indexName].update(old, update);
+	}
 };
 class IndexManager {
 public:
@@ -262,6 +287,7 @@ public:
 	}
 	~IndexManager() {
 		save();
+		cout << "hehe" << endl;
 	}
 	static IndexManager& instance() {
 		static IndexManager im;
@@ -287,6 +313,23 @@ public:
 		}
 		else {
 			cout << "not open catalogData" << endl;
+		}
+	}
+	void update(const string& name, const string& indexName, const string& attrName, char* value, const Token& content) {
+		auto attribute = CatalogManager::instance().attribute(name, attrName);
+		auto offset = attribute.off;
+		auto type = attribute.type;
+		if (type == "int") {
+			int val = Int(value + offset);
+			nameIndexs[name].update(indexName, val, content.toInt());
+		}
+		else if (type == "char") {
+			string val = string(value + offset);
+			nameIndexs[name].update(indexName, val, content.toString());
+		}
+		else if (type == "float") {
+			float val = Float(value + offset);
+			nameIndexs[name].update(indexName, val, content.toFloat());
 		}
 	}
 	void addIndex(const string& name, const string& indexName, const string& attrName, char* value, const Record & record) {

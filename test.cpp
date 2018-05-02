@@ -372,5 +372,43 @@ void time_select(int age) {
 //	showTableRecord("person");
 //	showIndex("person", "name1");
 //
+//showTableRecord("person2");
+/*	i.run("select * from person2  where age > 3 and ;");*/
+//i.run("select * from person2  where age
+//i.run("");
+//i.run("drop index age on person2;");
+//i.run("drop table person2");
+//showTableRecord("person2");
+//ifstream in("db/data/person2_5.txt");
+//if (in.is_open()) {
+//	char buf[1024];
+//	in.read(buf,1024);
+//	cout << *(int *)(buf + 172 + 168) << endl;
+//	//cout << *(int *)(buf  + 168) << endl;
+//}
+//std::cout.write(reinterpret_cast<const char*>(&x), sizeof(x));
+//i.run("select * from person2  where age = 24;");
+//i.run("select * from person2  where age = 25;");
+//i.run("select * from person2  where age = 3;");
+//i.run(R"(insert into person2 values(188.1, 18, "Person11", "000018", 100);)");
+//i.run("delete from person2 where age = 3;");
+//i.run("select * from person2  where age = 3;");
+//i.run("select * from person2  where age = 2;");
+//i.run("select * from person2  where age = 100;");
+//i.runFile("scripts/no_index.sql");
+//
+//cout << "before" << endl;
+//LOG("hit1");
+//i.run("create index age on person2(age);");
+//i.run("delete from person2 where age = 500");
+
+//i.run(input1);
+//timeer(time_select, 499);
+//showTableRecord("person2
 
 
+//test unique
+//test(test_unique1);
+//test(test_unique2);
+//test(test_unique3);
+//test(test_unique4);

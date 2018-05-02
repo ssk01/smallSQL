@@ -4,14 +4,10 @@
 #include "log.h"
 using std::string;
 int Int(char *value) {
-	int a;
-	memcpy(&a, value, sizeof(a));
-	return a;
+	return *(reinterpret_cast<int*>(value));
 }
 float Float(char *value) {
-	float a;
-	memcpy(&a, value, sizeof(a));
-	return a;
+	return *(reinterpret_cast<float*>(value));
 }
 const std::string recordlistDir = "db/recordlist/";
 const std::string catalogDataDir = "db/catalogData/";
@@ -52,5 +48,5 @@ void tryRemove(const string& tableName) {
 			LOG("remove success", tableName);
 		}
 	}
-	LOG("remove faile", tableName);
+	LOG("remove file", tableName);
 }

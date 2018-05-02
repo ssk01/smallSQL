@@ -204,6 +204,7 @@ public:
 		return false;
 	}
 	void showRecord(char *value) {
+		cout <<"showRecord\t"<< *(int *)(value + 168) << endl;
 		int offset = 0;
 		for (auto attri : attributes) {
 			if (attri.type == "int") {
@@ -242,11 +243,24 @@ public:
 		}
 		return res;
 	}
-
-	char* toEntry(const vector<Token>& content, char* value) {
-		int offset = 0;
+	void toEntry(const Token& c, char *value) {
+		if (c.type == "int") {
+	
+			*(int *)(value) = c.toInt();
+		}
+		else if (c.type == "char") {
+			memcpy(value , c.toString().c_str(), c.toString().size());
+			memset(value  + c.toString().size(), char('\0'), 1);
+		}
+		else if (c.type == "float") {
+			*(float *)(value) = c.toFloat();
+		}
+	}
+	
+	void toEntry(const vector<Token>& content, char* value) {
 		for (size_t i = 0; i < content.size(); i++) {
 			auto a = attributes[i];
+			int offset = a.off;
 			auto c = content[i].content;
 			if (a.type != content[i].type) {
 				exit(9);
@@ -255,7 +269,9 @@ public:
 				int v;
 				istringstream in(c);
 				in >> v;
-				memcpy(value + offset, &v, a.size);
+				//cout << "to entry:" << v << endl;
+				*(int *)(value + offset) = v;
+				//memcpy(value + offset, &v, a.size);
 			}
 			else if (a.type == "char") {
 				memcpy(value + offset, c.c_str(), c.size());
@@ -267,10 +283,8 @@ public:
 				in >> v;
 				memcpy(value + offset, &v, a.size);
 			}
-			offset += a.size;
 		}
 
-		return value;
 	}
 	void init() {
 		__size();

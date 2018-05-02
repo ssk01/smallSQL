@@ -48,8 +48,8 @@ public:
 		}
 	}
 
-	char * toEntry(const string& name, const vector<Token>& content, char* value) {
-		return nameTables[name].toEntry(content,value);
+	void toEntry(const string& name, const vector<Token>& content, char* value) {
+		 nameTables[name].toEntry(content,value);
 	}
 	int getEntrySize(const string& name) {
 		return nameTables[name].size();

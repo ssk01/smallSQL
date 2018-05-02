@@ -50,31 +50,44 @@ public:
 		auto tableName = get("char");
 		assertNext("(");
 		int idx = 0;
+		string _indexName;
+		string _name;
 		while (!peek(")")) {
-			auto name = get("char");
-			auto type = get("char");
-			int size = 0;
-			bool ifunique = false;
-			if (peek("(")) {
-				istringstream in(get("int"));
-				in >> size;
+			if (peek("primary")) {
+				_indexName = get("char");
+				assertNext("(");
+				_name = get("char");
 				assertNext(")");
 			}
-			if (peek().type == "char") {
-				assertNext("unique");
-				ifunique = true;
+			else {
+				auto name = get("char");
+				auto type = get("char");
+				int size = 0;
+				bool ifunique = false;
+				if (peek("(")) {
+					istringstream in(get("int"));
+					in >> size;
+					assertNext(")");
+				}
+				if (peek().type == "char") {
+					assertNext("unique");
+					ifunique = true;
+				}
+				attrs.emplace_back(name, type, idx, size, ifunique);
+				idx++;
 			}
-			attrs.emplace_back(name, type, idx,size, ifunique);
-			idx++;
 			if (peek(")")) {
 				break;
 			}
 			assertNext(",");
+			
+
 		}
 		if (!end()) {
 			assertNext(";");
 		}
 		addTable(tableName, attrs);
+		addIndex(tableName, _indexName, _name);
 	}
 	void deleteRecord() {
 		//DELETE FROM Person WHERE LastName = 'Wilson'
@@ -164,6 +177,47 @@ public:
 		}
 		::dropTable(tableName);
 	}
+	void update() {
+		// UPDATE CUSTOMERS
+		//SET ADDRESS = 'Pune', SALARY = 1000.00
+		//where;
+		auto tableName = get("char");
+		assertNext("set");
+		auto attrName = get("char");
+		assertNext("=");
+		auto token = get();
+		vector<Condition> contentconds;
+		while (peek(",")) {
+			contentconds.emplace_back(attrName, "=", token);
+		}
+		vector<Condition> conds;
+
+		if (!end() && peek(";")) {
+			::update(tableName, contentconds, conds);
+		}
+		else {
+			while (!end()) {
+				auto attriName = get("char");
+				string opType("!=><");
+				string op = "";
+				while (opType.find(peek().type) != -1) {
+					op += get().content;
+				}
+				auto token = get();
+				conds.emplace_back(attriName, op, token);
+				if (end()) {
+					break;
+				}
+				else if (peek(";")) {
+					break;
+				}
+				else {
+					assertNext("and");
+				}
+			}
+			::update(tableName, contentconds, conds);
+		}
+	}
 	void run(const string &input) {
 		init(input);
 		run();
@@ -196,13 +250,21 @@ public:
 						dropTable();
 					}
 				}
+				else if (peek("update")) {
+					update();
+				}
 				else {
 					cout << "fuck  " << peek() <<endl;
-					exit(0);
+					tokens.clear();
+					i = 0;
+					//exit(0);
 				}
 			}
 			catch (std::runtime_error& e) {
 				cout << e.what() << endl;
+				cout << "tokens" << tokens.size() << "  " << i;
+				tokens.clear();
+				i = 0;
 			}
 		}
 	}

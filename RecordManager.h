@@ -100,9 +100,9 @@ public:
 	}
 
 	size_t i = 0;
-	std::function< pair<char *, Record>()> selectGen(const vector<Record> &recs, const vector<Condition>& conds) {
+	std::function< BlockPtr()> selectGen(const vector<Record> &recs, const vector<Condition>& conds) {
 		//cout <<"size :"<< recs.size() << endl;
-		auto f = [this, recs,  conds]() ->pair<char *, Record>{
+		auto f = [this, recs,  conds]() ->BlockPtr{
 		/*	cout << "size :" << recs.size() <<"i "<< i << "  "<<conds.size()<< endl;*/
 			while (i < recs.size()) {
 				auto entry = recs[i];
@@ -146,21 +146,21 @@ public:
 				}
 				if (condTure == conds.size()) {
 					LOG("success ", entry.first, entry.second);
-					return{ byteValue, entry };
+					return{ block, entry, byteValue };
 				}
 
 			}
 			i = 0;
-			return{ nullptr,{ 0,0 } };
+			return{ nullptr,{ 0,0 },nullptr };
 		};
 		return f;
 	}
-	std::function< pair<char *, Record>()> selectGen(const vector<Condition>& conds) {
+	std::function< BlockPtr()> selectGen(const vector<Condition>& conds) {
 		cout << records.size() << endl;
 		return selectGen({ records.begin(), records.end() }, conds);
 	}
 
-	bool recordExist(const Token& content, int i, int offset) {
+	bool recordExist(const Token& content, int offset) {
 		char *byteValue;
 		for (auto &entry : records) {
 			auto block = BufferManager::instance().find_or_alloc(tableName, entry.first);
@@ -192,6 +192,11 @@ public:
 	void deleteRecord(Record entry) {
 		records.remove(entry);
 		free_records.push_back(entry);
+	}
+	void update(char * byteValue, vector<Condition> conds) {
+		for (auto c : conds) {
+
+		}
 	}
 	Record insertRecord(const vector<Token>&content) {
 		Record entry;
@@ -237,10 +242,10 @@ public:
 		return rm;
 	}
 
-	std::function< pair<char *, Record>()>  selectGen(const string& tableName, const vector<Record> & recs, const vector<Condition>& conds) {
+	std::function< BlockPtr()>  selectGen(const string& tableName, const vector<Record> & recs, const vector<Condition>& conds) {
 		return tableInfos[tableName].selectGen(recs, conds);
 	}
-	std::function< pair<char *, Record>()> selectGen(const string& tableName, const vector<Condition>& conds) {
+	std::function< BlockPtr()> selectGen(const string& tableName, const vector<Condition>& conds) {
 		return tableInfos[tableName].selectGen(conds);
 	}
 	void deleteRecord(const string& tableName, Record entry) {
@@ -255,14 +260,15 @@ public:
 		tableInfos.erase(name);
 		return blockIndexs;
 	}
+
 	RecordList::Record insertRecord(const string &name, const vector<Token>&content) {
 		return tableInfos[name].insertRecord(content);
 	}
 	void  showReocrd(const string &name) {
 		return tableInfos[name].showAllReocrd();
 	}
-	bool recordExist(const string &name, const Token& content, int i, int offset) {
-		return tableInfos[name].recordExist(content, i, offset);
+	bool recordExist(const string &name, const Token& content,  int offset) {
+		return tableInfos[name].recordExist(content, offset);
 	}
 	~RecordManager() {
 		save();
